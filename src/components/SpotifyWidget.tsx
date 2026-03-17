@@ -100,3 +100,33 @@ export default function SpotifyWidget() {
         {isPlaying && (
           <div style={{ display: "flex", gap: "2px", alignItems: "flex-end", height: "12px" }}>
             {[...Array(4)].map((_, i) => (
+              <div
+                key={i}
+                style={{
+                  width: "2px",
+                  height: "100%",
+                  background: "#1db954",
+                  borderRadius: "1px",
+                  animation: `wave 1s infinite ${i * 0.2}s`,
+                }}
+              />
+            ))}
+          </div>
+        )}
+
+        <style>
+          {`
+          @keyframes marquee {
+            0% { transform: translateX(0%); }
+            100% { transform: translateX(-50%); }
+          }
+          @keyframes wave {
+            0%, 100% { height: 4px; }
+            50% { height: 12px; }
+          }
+        `}
+        </style>
+      </div>
+    </a>
+  );
+}
