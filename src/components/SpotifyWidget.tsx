@@ -20,8 +20,22 @@ export default function SpotifyWidget() {
   }, []);
 
   if (!song || !song.isPlaying) {
-    return null; // cleaner than "Nothing playing"
-  }
+  return (
+    <div style={{
+      position: "fixed",
+      bottom: "20px",
+      right: "20px",
+      background: "#111",
+      color: "white",
+      padding: "10px",
+      borderRadius: "12px",
+      fontSize: "12px",
+      opacity: 0.7
+    }}>
+      Not playing
+    </div>
+  );
+}
 
   return (
     <div style={{
