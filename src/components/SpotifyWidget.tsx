@@ -27,106 +27,71 @@ export default function SpotifyWidget() {
       href={isPlaying ? song.songUrl : "#"}
       target="_blank"
       rel="noopener noreferrer"
-      style={{ textDecoration: "none" }}
+      style={{
+        textDecoration: "none",
+        fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif",
+      }}
     >
       <div
         onMouseEnter={() => setHover(true)}
         onMouseLeave={() => setHover(false)}
         style={{
           position: "fixed",
-          bottom: "28px",
-          right: "28px",
+          bottom: "32px", // Increased padding from the corner
+          right: "32px",
           zIndex: 9999,
-          padding: "12px 16px",
-          borderRadius: "20px",
+          padding: "16px 20px", // More generous padding
+          borderRadius: "16px", // Cleaner, modern corner
           width: "fit-content",
-          minWidth: "220px",
-          maxWidth: "320px",
+          minWidth: "260px", // slightly wider base
+          maxWidth: "360px",
           display: "flex",
           alignItems: "center",
-          gap: "12px",
-          backdropFilter: "blur(20px)",
+          gap: "14px", // improved spacing
+          backdropFilter: "blur(28px)", // deeper blur
+          // Rich multi-stop gradients for depth
           background: isPlaying
-            ? "linear-gradient(135deg, rgba(29,185,84,0.15), rgba(0,0,0,0.6))"
-            : "linear-gradient(135deg, rgba(255,255,255,0.05), rgba(0,0,0,0.6))",
-          border: "1px solid rgba(255,255,255,0.1)",
-          color: "white",
-          boxShadow: isPlaying ? "0 8px 30px rgba(29,185,84,0.2)" : "0 8px 30px rgba(0,0,0,0.3)",
-          transition: "all 0.3s ease",
-          transform: hover ? "translateY(-4px)" : "none",
+            ? "linear-gradient(135deg, rgba(29, 185, 84, 0.25) 0%, rgba(10, 10, 10, 0.7) 40%, rgba(5, 5, 5, 0.9) 100%)"
+            : "linear-gradient(135deg, rgba(50, 50, 50, 0.4) 0%, rgba(20, 20, 20, 0.7) 40%, rgba(5, 5, 5, 0.9) 100%)",
+          border: "1px solid rgba(255, 255, 255, 0.08)", // subtle transparent border
+          color: "#FAFAFA",
+          // Enhanced, multi-layered "floating" box-shadow
+          boxShadow: isPlaying
+            ? "0 10px 40px -10px rgba(29, 185, 84, 0.3), 0 5px 20px -10px rgba(0, 0, 0, 0.2)"
+            : "0 10px 40px -10px rgba(0, 0, 0, 0.5), 0 5px 20px -10px rgba(0, 0, 0, 0.2)",
+          transition: "all 0.4s cubic-bezier(0.165, 0.84, 0.44, 1)", // smoother transition
+          transform: hover ? "translateY(-6px) scale(1.02)" : "none", // stronger lift and subtle scale
           overflow: "hidden",
         }}
       >
-        {/* ART */}
+        {/* ART / ICON CONTAINER */}
         <div style={{ flexShrink: 0 }}>
           {isPlaying ? (
             <img
               src={song.albumArt}
-              width={40}
-              height={40}
+              width={48} // larger art
+              height={48}
               alt="Art"
-              style={{ borderRadius: "8px", objectFit: "cover" }}
+              style={{
+                borderRadius: "10px", // subtle corner difference
+                objectFit: "cover",
+                boxShadow: "0 2px 10px rgba(0, 0, 0, 0.4)", // separate shadow for art
+              }}
             />
           ) : (
-            <div style={{
-              width: 40, height: 40, borderRadius: "8px",
-              display: "flex", alignItems: "center", justifyContent: "center",
-              background: "rgba(255,255,255,0.1)", color: "#888"
-            }}>♪</div>
-          )}
-        </div>
-
-        {/* MARQUEE TEXT */}
-        <div style={{ 
-          flex: 1, 
-          overflow: "hidden",
-          maskImage: "linear-gradient(to right, transparent, black 10%, black 90%, transparent)"
-        }}>
-          <div style={{ 
-            display: "flex", 
-            flexDirection: "column",
-            animation: isPlaying && hover ? "marquee 10s linear infinite" : "none" 
-          }}>
-            <span style={{ fontWeight: 600, fontSize: "13px", whiteSpace: "nowrap" }}>
-              {isPlaying ? song.title : "Spotify Idle"}
-            </span>
-            <span style={{ fontSize: "11px", opacity: 0.6, whiteSpace: "nowrap" }}>
-              {isPlaying ? song.artist : "No music playing"}
-            </span>
-          </div>
-        </div>
-
-        {/* WAVEFORM */}
-        {isPlaying && (
-          <div style={{ display: "flex", gap: "2px", alignItems: "flex-end", height: "12px" }}>
-            {[...Array(4)].map((_, i) => (
-              <div
-                key={i}
-                style={{
-                  width: "2px",
-                  height: "100%",
-                  background: "#1db954",
-                  borderRadius: "1px",
-                  animation: `wave 1s infinite ${i * 0.2}s`,
-                }}
-              />
-            ))}
-          </div>
-        )}
-
-        <style>
-          {`
-          @keyframes marquee {
-            0% { transform: translateX(0%); }
-            100% { transform: translateX(-50%); }
-          }
-          @keyframes wave {
-            0%, 100% { height: 4px; }
-            50% { height: 12px; }
-          }
-        `}
-        </style>
-      </div>
-    </a>
-  );
-}
+            <div
+              style={{
+                width: 48,
+                height: 48,
+                borderRadius: "10px",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                background: "rgba(255, 255, 255, 0.12)",
+                color: "#999",
+                // Clean vector music note placeholder icon
+                textShadow: "0 1px 1px rgba(0, 0, 0, 0.5)",
+              }}
+            >
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M12 2C6.48 2 2 6.48 2 12C2 17.52 6.48 22 12 22C17.52 22 22 17.52 22 12C22 6.48 17.52 2 12 2ZM12 11.5V6H14.5V9H17V6V5.5C17 4.67 16.33 4 15.5 4H12H11.5C10.67 4
