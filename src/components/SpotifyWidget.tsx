@@ -58,65 +58,37 @@ export default function SpotifyWidget() {
       >
         {/* TOP */}
         <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
-          
-          {/* 🎵 MUSIC ENERGY ICON */}
-          <div style={{ position: "relative", width: hover ? 56 : 44, height: hover ? 56 : 44 }}>
-            
-            {/* Glow */}
-            <div
+          {/* Album */}
+          <div
+            style={{
+              position: "relative",
+            }}
+          >
+            <img
+              src={
+                isPlaying
+                  ? song.albumArt
+                  : "https://cdn-icons-png.flaticon.com/512/727/727245.png"
+              }
+              width={hover ? 56 : 44}
               style={{
-                position: "absolute",
-                inset: 0,
-                borderRadius: "50%",
-                background: isPlaying
-                  ? "radial-gradient(circle, rgba(29,185,84,0.6), transparent)"
-                  : "radial-gradient(circle, rgba(255,255,255,0.15), transparent)",
-                filter: "blur(10px)",
-                animation: "pulseGlow 2s infinite",
+                borderRadius: "14px",
+                transition: "all 0.3s ease",
               }}
             />
 
-            {/* Floating Note */}
-            <div
-              style={{
-                position: "absolute",
-                inset: 0,
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                fontSize: hover ? "22px" : "18px",
-                color: isPlaying ? "#1db954" : "#aaa",
-                animation: "floatNote 3s ease-in-out infinite",
-              }}
-            >
-              ♪
-            </div>
-
-            {/* Beat particles */}
+            {/* Glow pulse */}
             {isPlaying && (
-              <>
-                <div style={{
+              <div
+                style={{
                   position: "absolute",
-                  width: "6px",
-                  height: "6px",
-                  borderRadius: "50%",
-                  background: "#1db954",
-                  top: "10%",
-                  left: "80%",
-                  animation: "beat 1.2s infinite"
-                }} />
-
-                <div style={{
-                  position: "absolute",
-                  width: "4px",
-                  height: "4px",
-                  borderRadius: "50%",
-                  background: "#1db954",
-                  bottom: "15%",
-                  left: "10%",
-                  animation: "beat 1.2s infinite 0.4s"
-                }} />
-              </>
+                  inset: "-6px",
+                  borderRadius: "18px",
+                  background: "rgba(29,185,84,0.3)",
+                  filter: "blur(12px)",
+                  animation: "pulse 2s infinite",
+                }}
+              />
             )}
           </div>
 
@@ -137,7 +109,7 @@ export default function SpotifyWidget() {
                   Spotify Idle
                 </span>
                 <span style={{ fontSize: "11px", opacity: 0.5 }}>
-                  waiting for your next vibe...
+                  Nothing playing right now
                 </span>
               </>
             )}
@@ -186,6 +158,20 @@ export default function SpotifyWidget() {
           </div>
         )}
 
+        {/* IDLE BEAUTY */}
+        {!isPlaying && (
+          <div
+            style={{
+              textAlign: "center",
+              fontSize: "11px",
+              opacity: 0.4,
+              marginTop: "4px",
+            }}
+          >
+            🎧 waiting for your next vibe...
+          </div>
+        )}
+
         {/* ANIMATIONS */}
         <style>
           {`
@@ -195,22 +181,10 @@ export default function SpotifyWidget() {
             100% { height: 4px; }
           }
 
-          @keyframes pulseGlow {
-            0% { opacity: 0.4; transform: scale(1); }
-            50% { opacity: 0.9; transform: scale(1.2); }
-            100% { opacity: 0.4; transform: scale(1); }
-          }
-
-          @keyframes floatNote {
-            0% { transform: translateY(0px); }
-            50% { transform: translateY(-4px); }
-            100% { transform: translateY(0px); }
-          }
-
-          @keyframes beat {
-            0% { transform: scale(0.8); opacity: 0.5; }
-            50% { transform: scale(1.4); opacity: 1; }
-            100% { transform: scale(0.8); opacity: 0.5; }
+          @keyframes pulse {
+            0% { opacity: 0.4; }
+            50% { opacity: 0.9; }
+            100% { opacity: 0.4; }
           }
 
           @keyframes progress {
