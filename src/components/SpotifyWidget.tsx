@@ -19,42 +19,55 @@ export default function SpotifyWidget() {
     return () => clearInterval(interval);
   }, []);
 
-  if (!song || !song.isPlaying) {
-  return (
-    <div style={{
-      position: "fixed",
-      bottom: "20px",
-      right: "20px",
-      background: "#111",
-      color: "white",
-      padding: "10px",
-      borderRadius: "12px",
-      fontSize: "12px",
-      opacity: 0.7
-    }}>
-      Not playing
-    </div>
-  );
-}
+  const isPlaying = song && song.isPlaying;
 
   return (
-    <div style={{
-      position: "fixed",
-      bottom: "20px",
-      right: "20px",
-      background: "#111",
-      color: "white",
-      padding: "10px",
-      borderRadius: "12px",
-      display: "flex",
-      gap: "10px",
-      alignItems: "center",
-      boxShadow: "0 0 10px rgba(0,0,0,0.3)"
-    }}>
-      <img src={song.albumArt} width={50} style={{ borderRadius: "8px" }} />
-      <div>
-        <div style={{ fontWeight: "bold" }}>{song.title}</div>
-        <div style={{ fontSize: "12px", opacity: 0.7 }}>{song.artist}</div>
+    <div
+      style={{
+        position: "fixed",
+        bottom: "24px",
+        right: "24px",
+        zIndex: 9999,
+        display: "flex",
+        alignItems: "center",
+        gap: "12px",
+        padding: "12px 16px",
+        borderRadius: "16px",
+        background: "rgba(20, 20, 20, 0.6)",
+        backdropFilter: "blur(12px)",
+        border: "1px solid rgba(255,255,255,0.1)",
+        boxShadow: "0 0 20px rgba(0,0,0,0.4)",
+        color: "white",
+        minWidth: "180px",
+        transition: "all 0.3s ease",
+      }}
+    >
+      {/* Icon */}
+      <div style={{ fontSize: "20px", color: "#1db954" }}>
+        ♪
+      </div>
+
+      {/* Text */}
+      <div style={{ display: "flex", flexDirection: "column" }}>
+        {isPlaying ? (
+          <>
+            <span style={{ fontWeight: 600, fontSize: "13px" }}>
+              {song.title}
+            </span>
+            <span style={{ fontSize: "11px", opacity: 0.6 }}>
+              {song.artist}
+            </span>
+          </>
+        ) : (
+          <>
+            <span style={{ fontWeight: 600, fontSize: "13px" }}>
+              Not playing
+            </span>
+            <span style={{ fontSize: "11px", opacity: 0.6 }}>
+              Spotify
+            </span>
+          </>
+        )}
       </div>
     </div>
   );
