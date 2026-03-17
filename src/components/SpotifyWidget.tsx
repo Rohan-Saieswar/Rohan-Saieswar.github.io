@@ -38,23 +38,33 @@ export default function SpotifyWidget() {
           bottom: "28px",
           right: "28px",
           zIndex: 9999,
+
           padding: hover ? "18px" : "14px",
+          paddingRight: isPlaying ? "56px" : "18px",
+
           borderRadius: "22px",
-          width: hover ? "300px" : "240px",
+          width: hover ? "340px" : "280px",
+
           display: "flex",
           flexDirection: "column",
-          gap: "10px",
+          gap: "12px",
+
           backdropFilter: "blur(18px)",
           background: isPlaying
             ? "linear-gradient(135deg, rgba(29,185,84,0.15), rgba(0,0,0,0.6))"
             : "linear-gradient(135deg, rgba(255,255,255,0.05), rgba(0,0,0,0.6))",
+
           border: "1px solid rgba(255,255,255,0.08)",
+
           boxShadow: isPlaying
             ? "0 0 40px rgba(29,185,84,0.35)"
             : "0 0 25px rgba(255,255,255,0.05)",
+
           color: "white",
+
           transition: "all 0.35s ease",
           transform: hover ? "scale(1.03)" : "scale(1)",
+
           overflow: "hidden",
         }}
       >
@@ -66,8 +76,8 @@ export default function SpotifyWidget() {
             {isPlaying ? (
               <img
                 src={song.albumArt}
-                width={48}
-                height={48}
+                width={52}
+                height={52}
                 style={{
                   borderRadius: "12px",
                   objectFit: "cover",
@@ -76,8 +86,8 @@ export default function SpotifyWidget() {
             ) : (
               <div
                 style={{
-                  width: 48,
-                  height: 48,
+                  width: 52,
+                  height: 52,
                   borderRadius: "12px",
                   display: "flex",
                   alignItems: "center",
@@ -171,7 +181,7 @@ export default function SpotifyWidget() {
           )}
         </div>
 
-        {/* 🎚 SLIDER (ONLY WHEN PLAYING) */}
+        {/* SLIDER */}
         {isPlaying && (
           <div style={{ marginTop: "4px" }}>
             <ElasticSlider
