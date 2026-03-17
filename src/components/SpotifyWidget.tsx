@@ -97,4 +97,127 @@ export default function SpotifyWidget() {
                 }}
               >
                 {/* PROPER MUSIC NOTE ICON */}
-                <svg xmlns="
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M9 18V5l12-2v13"></path>
+                  <circle cx="6" cy="18" r="3"></circle>
+                  <circle cx="18" cy="16" r="3"></circle>
+                </svg>
+              </div>
+            )}
+          </div>
+
+          {/* TEXT */}
+          <div style={{ display: "flex", flexDirection: "column", flex: 1, overflow: "hidden" }}>
+            <span
+              style={{
+                fontWeight: 600,
+                fontSize: "15px",
+                letterSpacing: "-0.3px",
+                whiteSpace: "nowrap",
+                overflow: "hidden",
+                textOverflow: "ellipsis",
+              }}
+            >
+              {isPlaying ? song.title : "Not Playing"}
+            </span>
+            <span
+              style={{
+                fontSize: "13px",
+                opacity: 0.6,
+                letterSpacing: "-0.1px",
+                whiteSpace: "nowrap",
+                overflow: "hidden",
+                textOverflow: "ellipsis",
+              }}
+            >
+              {isPlaying ? song.artist : "Spotify"}
+            </span>
+          </div>
+
+          {/* iOS STYLE WAVEFORM */}
+          {isPlaying && (
+            <div style={{ display: "flex", gap: "2px", alignItems: "center", height: "16px", paddingLeft: "8px" }}>
+              {[...Array(4)].map((_, i) => (
+                <div
+                  key={i}
+                  style={{
+                    width: "3px",
+                    height: "100%",
+                    background: "#fff",
+                    borderRadius: "2px",
+                    animation: `iosWave 1.2s infinite ease-in-out ${i * 0.15}s`,
+                    opacity: 0.8,
+                  }}
+                />
+              ))}
+            </div>
+          )}
+        </div>
+
+        {/* BOTTOM ROW: SLIDER */}
+        {isPlaying && (
+          <div style={{ width: "100%", padding: "0 4px" }}>
+            <Slider defaultValue={30} startingValue={0} maxValue={100} />
+          </div>
+        )}
+
+        <style>
+          {`
+          @keyframes iosWave {
+            0%, 100% { height: 4px; }
+            50% { height: 16px; }
+          }
+        `}
+        </style>
+      </div>
+    </a>
+  );
+}
+
+/* =========================
+   PURE INLINE ELASTIC SLIDER
+========================= */
+
+interface SliderProps {
+  defaultValue: number;
+  startingValue: number;
+  maxValue: number;
+}
+
+const Slider = ({ defaultValue, startingValue, maxValue }: SliderProps) => {
+  const [value, setValue] = useState(defaultValue);
+  const sliderRef = useRef<HTMLDivElement>(null);
+  const clientX = useMotionValue(0);
+
+  const handlePointerMove = (e: React.PointerEvent<HTMLDivElement>) => {
+    if (e.buttons > 0 && sliderRef.current) {
+      const { left, width } = sliderRef.current.getBoundingClientRect();
+      let newValue =
+        startingValue +
+        ((e.clientX - left) / width) * (maxValue - startingValue);
+
+      newValue = Math.min(Math.max(newValue, startingValue), maxValue);
+      setValue(newValue);
+      clientX.jump(e.clientX);
+    }
+  };
+
+  return (
+    <div
+      ref={sliderRef}
+      style={{
+        position: "relative",
+        display: "flex",
+        width: "100%",
+        alignItems: "center",
+        padding: "6px 0",
+        cursor: "pointer",
+      }}
+      onPointerMove={handlePointerMove}
+      onPointerDown={handlePointerMove}
+    >
+      <motion.div
+        style={{
+          width: "100%",
+          height: "6px",
+          background: "rgba(255, 255, 255, 0.15)",
