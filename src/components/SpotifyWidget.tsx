@@ -1,3 +1,5 @@
+import React, { useEffect, useState } from "react";
+
 export default function SpotifyWidget() {
   const [song, setSong] = useState<any>(null);
   const [hover, setHover] = useState(false);
@@ -35,71 +37,60 @@ export default function SpotifyWidget() {
           bottom: "28px",
           right: "28px",
           zIndex: 9999,
-          padding: "14px 18px",
-          borderRadius: "22px",
+          padding: "12px 16px",
+          borderRadius: "20px",
           width: "fit-content",
-          minWidth: "240px",
-          maxWidth: "340px",
+          minWidth: "220px",
+          maxWidth: "320px",
           display: "flex",
           alignItems: "center",
           gap: "12px",
           backdropFilter: "blur(20px)",
           background: isPlaying
-            ? "linear-gradient(135deg, rgba(29,185,84,0.2), rgba(0,0,0,0.7))"
-            : "linear-gradient(135deg, rgba(255,255,255,0.05), rgba(0,0,0,0.7))",
+            ? "linear-gradient(135deg, rgba(29,185,84,0.15), rgba(0,0,0,0.6))"
+            : "linear-gradient(135deg, rgba(255,255,255,0.05), rgba(0,0,0,0.6))",
           border: "1px solid rgba(255,255,255,0.1)",
           color: "white",
-          boxShadow: isPlaying ? "0 8px 32px rgba(29,185,84,0.2)" : "0 8px 32px rgba(0,0,0,0.3)",
-          transition: "all 0.4s cubic-bezier(0.23, 1, 0.32, 1)",
-          transform: hover ? "translateY(-5px) scale(1.02)" : "translateY(0) scale(1)",
+          boxShadow: isPlaying ? "0 8px 30px rgba(29,185,84,0.2)" : "0 8px 30px rgba(0,0,0,0.3)",
+          transition: "all 0.3s ease",
+          transform: hover ? "translateY(-4px)" : "none",
           overflow: "hidden",
         }}
       >
-        {/* ALBUM ART */}
-        <div style={{ flexShrink: 0, position: "relative", width: 44, height: 44 }}>
+        {/* ART */}
+        <div style={{ flexShrink: 0 }}>
           {isPlaying ? (
             <img
               src={song.albumArt}
-              width={44}
-              height={44}
+              width={40}
+              height={40}
               alt="Art"
               style={{ borderRadius: "8px", objectFit: "cover" }}
             />
           ) : (
             <div style={{
-              width: 44, height: 44, borderRadius: "8px",
+              width: 40, height: 40, borderRadius: "8px",
               display: "flex", alignItems: "center", justifyContent: "center",
               background: "rgba(255,255,255,0.1)", color: "#888"
             }}>♪</div>
           )}
         </div>
 
-        {/* TEXT AREA WITH MARQUEE */}
+        {/* MARQUEE TEXT */}
         <div style={{ 
           flex: 1, 
           overflow: "hidden",
-          display: "flex",
-          flexDirection: "column",
           maskImage: "linear-gradient(to right, transparent, black 10%, black 90%, transparent)"
         }}>
           <div style={{ 
             display: "flex", 
             flexDirection: "column",
-            animation: isPlaying && hover ? "marquee 7s linear infinite" : "none" 
+            animation: isPlaying && hover ? "marquee 10s linear infinite" : "none" 
           }}>
-            <span style={{ 
-              fontWeight: 600, 
-              fontSize: "13px", 
-              whiteSpace: "nowrap",
-              letterSpacing: "0.01em"
-            }}>
+            <span style={{ fontWeight: 600, fontSize: "13px", whiteSpace: "nowrap" }}>
               {isPlaying ? song.title : "Spotify Idle"}
             </span>
-            <span style={{ 
-              fontSize: "11px", 
-              opacity: 0.6, 
-              whiteSpace: "nowrap" 
-            }}>
+            <span style={{ fontSize: "11px", opacity: 0.6, whiteSpace: "nowrap" }}>
               {isPlaying ? song.artist : "No music playing"}
             </span>
           </div>
@@ -107,7 +98,7 @@ export default function SpotifyWidget() {
 
         {/* WAVEFORM */}
         {isPlaying && (
-          <div style={{ display: "flex", gap: "2px", alignItems: "flex-end", height: "14px", marginLeft: "4px" }}>
+          <div style={{ display: "flex", gap: "2px", alignItems: "flex-end", height: "12px" }}>
             {[...Array(4)].map((_, i) => (
               <div
                 key={i}
@@ -127,11 +118,11 @@ export default function SpotifyWidget() {
           {`
           @keyframes marquee {
             0% { transform: translateX(0%); }
-            100% { transform: translateX(-40%); }
+            100% { transform: translateX(-50%); }
           }
           @keyframes wave {
             0%, 100% { height: 4px; }
-            50% { height: 14px; }
+            50% { height: 12px; }
           }
         `}
         </style>
