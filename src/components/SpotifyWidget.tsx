@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import ElasticSlider from "./ElasticSlider";
 
 export default function SpotifyWidget() {
   const [song, setSong] = useState<any>(null);
@@ -39,10 +40,10 @@ export default function SpotifyWidget() {
           zIndex: 9999,
           padding: hover ? "18px" : "14px",
           borderRadius: "22px",
-          width: hover ? "280px" : "220px",
+          width: hover ? "300px" : "240px",
           display: "flex",
           flexDirection: "column",
-          gap: "12px",
+          gap: "10px",
           backdropFilter: "blur(18px)",
           background: isPlaying
             ? "linear-gradient(135deg, rgba(29,185,84,0.15), rgba(0,0,0,0.6))"
@@ -54,34 +55,36 @@ export default function SpotifyWidget() {
           color: "white",
           transition: "all 0.35s ease",
           transform: hover ? "scale(1.03)" : "scale(1)",
+          overflow: "hidden",
         }}
       >
-        {/* TOP */}
+        {/* TOP ROW */}
         <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
           
           {/* ICON / ALBUM */}
-          <div style={{ position: "relative" }}>
+          <div style={{ position: "relative", flexShrink: 0 }}>
             {isPlaying ? (
               <img
                 src={song.albumArt}
-                width={hover ? 56 : 44}
+                width={48}
+                height={48}
                 style={{
-                  borderRadius: "14px",
-                  transition: "all 0.3s ease",
+                  borderRadius: "12px",
+                  objectFit: "cover",
                 }}
               />
             ) : (
               <div
                 style={{
-                  width: hover ? 56 : 44,
-                  height: hover ? 56 : 44,
-                  borderRadius: "14px",
+                  width: 48,
+                  height: 48,
+                  borderRadius: "12px",
                   display: "flex",
                   alignItems: "center",
                   justifyContent: "center",
                   background: "rgba(255,255,255,0.05)",
                   color: "#aaa",
-                  fontSize: "20px",
+                  fontSize: "18px",
                 }}
               >
                 ♪
@@ -94,7 +97,7 @@ export default function SpotifyWidget() {
                 style={{
                   position: "absolute",
                   inset: "-6px",
-                  borderRadius: "18px",
+                  borderRadius: "16px",
                   background: "rgba(29,185,84,0.3)",
                   filter: "blur(12px)",
                   animation: "pulse 2s infinite",
@@ -104,13 +107,36 @@ export default function SpotifyWidget() {
           </div>
 
           {/* TEXT */}
-          <div style={{ display: "flex", flexDirection: "column" }}>
+          <div
+            style={{
+              flex: 1,
+              minWidth: 0,
+              display: "flex",
+              flexDirection: "column",
+            }}
+          >
             {isPlaying ? (
               <>
-                <span style={{ fontWeight: 600, fontSize: "14px" }}>
+                <span
+                  style={{
+                    fontWeight: 600,
+                    fontSize: "14px",
+                    whiteSpace: "nowrap",
+                    overflow: "hidden",
+                    textOverflow: "ellipsis",
+                  }}
+                >
                   {song.title}
                 </span>
-                <span style={{ fontSize: "11px", opacity: 0.6 }}>
+                <span
+                  style={{
+                    fontSize: "11px",
+                    opacity: 0.6,
+                    whiteSpace: "nowrap",
+                    overflow: "hidden",
+                    textOverflow: "ellipsis",
+                  }}
+                >
                   {song.artist}
                 </span>
               </>
@@ -119,7 +145,9 @@ export default function SpotifyWidget() {
                 <span style={{ fontWeight: 600, fontSize: "14px" }}>
                   Spotify Idle
                 </span>
-                {/* ✅ duplicate line REMOVED here */}
+                <span style={{ fontSize: "11px", opacity: 0.5 }}>
+                  No music playing
+                </span>
               </>
             )}
           </div>
@@ -127,7 +155,7 @@ export default function SpotifyWidget() {
           {/* WAVEFORM */}
           {isPlaying && (
             <div style={{ display: "flex", gap: "3px", marginLeft: "auto" }}>
-              {[...Array(5)].map((_, i) => (
+              {[...Array(4)].map((_, i) => (
                 <div
                   key={i}
                   style={{
@@ -135,7 +163,7 @@ export default function SpotifyWidget() {
                     height: "12px",
                     background: "#1db954",
                     borderRadius: "2px",
-                    animation: `wave 1s infinite ${i * 0.15}s`,
+                    animation: `wave 1s infinite ${i * 0.2}s`,
                   }}
                 />
               ))}
@@ -143,14 +171,27 @@ export default function SpotifyWidget() {
           )}
         </div>
 
-        {/* ✅ ONLY THIS ONE REMAINS (with headphone icon) */}
+        {/* 🎚 SLIDER (ONLY WHEN PLAYING) */}
+        {isPlaying && (
+          <div style={{ marginTop: "4px" }}>
+            <ElasticSlider
+              defaultValue={50}
+              startingValue={0}
+              maxValue={100}
+              className="w-full"
+              leftIcon={<span style={{ fontSize: "12px" }}>🎵</span>}
+              rightIcon={<span style={{ fontSize: "12px" }}>🔊</span>}
+            />
+          </div>
+        )}
+
+        {/* IDLE FOOTER */}
         {!isPlaying && (
           <div
             style={{
               textAlign: "center",
               fontSize: "11px",
               opacity: 0.4,
-              marginTop: "4px",
             }}
           >
             🎧 waiting for your next vibe...
