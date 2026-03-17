@@ -1,21 +1,17 @@
-<<<<<<< HEAD
 import { useEffect, useRef, useState } from "react";
 import { motion, useMotionValue } from "motion/react";
 
 /* =========================
    SPOTIFY WIDGET
 ========================= */
-=======
-import { useEffect, useState } from "react";
-import styles from "./SpotifyWidget.module.css";
->>>>>>> b665557 (Update Spotify Widget with Framer Motion animations)
 
 export default function SpotifyWidget() {
   const [song, setSong] = useState<any>(null);
+  const [hover, setHover] = useState(false);
 
   async function getNowPlaying() {
     try {
-      const res = await fetch("/.netlify/functions/now-playing");
+      const res = await fetch("https://project-o0epg.vercel.app/api/now-playing");
       const data = await res.json();
       setSong(data);
     } catch (err) {
@@ -29,20 +25,13 @@ export default function SpotifyWidget() {
     return () => clearInterval(interval);
   }, []);
 
-<<<<<<< HEAD
   const isPlaying = song && song.isPlaying;
-=======
-  const isPlaying = !!(song && song.isPlaying);
-  const isRecentlyPlayed = !!(song && song.isRecentlyPlayed);
-  const hasData = isPlaying || isRecentlyPlayed;
->>>>>>> b665557 (Update Spotify Widget with Framer Motion animations)
 
   return (
     <a
-      href={hasData ? song.songUrl : "#"}
+      href={isPlaying ? song.songUrl : "#"}
       target="_blank"
       rel="noopener noreferrer"
-<<<<<<< HEAD
       style={{ textDecoration: "none" }}
     >
       <div
@@ -59,7 +48,6 @@ export default function SpotifyWidget() {
 
           borderRadius: "22px",
 
-          // 🔥 AUTO WIDTH
           width: "fit-content",
           minWidth: "260px",
           maxWidth: hover ? "420px" : "360px",
@@ -87,9 +75,7 @@ export default function SpotifyWidget() {
           overflow: "hidden",
         }}
       >
-        {/* TOP */}
         <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
-          {/* ICON */}
           <div style={{ position: "relative", flexShrink: 0 }}>
             {isPlaying ? (
               <img
@@ -121,7 +107,6 @@ export default function SpotifyWidget() {
             )}
           </div>
 
-          {/* TEXT */}
           <div style={{ display: "flex", flexDirection: "column" }}>
             {isPlaying ? (
               <>
@@ -162,7 +147,6 @@ export default function SpotifyWidget() {
             )}
           </div>
 
-          {/* WAVEFORM */}
           {isPlaying && (
             <div style={{ display: "flex", gap: "3px", marginLeft: "auto" }}>
               {[...Array(4)].map((_, i) => (
@@ -181,7 +165,6 @@ export default function SpotifyWidget() {
           )}
         </div>
 
-        {/* 🎚 SLIDER */}
         {isPlaying && (
           <ElasticSlider
             defaultValue={50}
@@ -193,7 +176,6 @@ export default function SpotifyWidget() {
           />
         )}
 
-        {/* IDLE FOOTER */}
         {!isPlaying && (
           <div
             style={{
@@ -215,56 +197,10 @@ export default function SpotifyWidget() {
           }
         `}
         </style>
-=======
-      className={`${styles.spotifyWidgetContainer} ${isPlaying ? styles.playing : ""}`}
-    >
-      <div className={styles.spotifyWidget}>
-        {/* ART / ICON CONTAINER */}
-        {hasData ? (
-          <img
-            src={song.albumImageUrl}
-            alt="Album Art"
-            className={styles.albumArt}
-          />
-        ) : (
-          <div className={styles.placeholderIcon}>
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
-              <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 14H9V8h2v8zm4 0h-2V8h2v8z" />
-            </svg>
-          </div>
-        )}
-
-        {/* SONG INFO */}
-        {hasData ? (
-          <div className={styles.trackInfo}>
-            <div className={styles.label}>
-              {isPlaying ? "Now Playing" : "Last Played"}
-            </div>
-            <div className={styles.trackName}>{song.title}</div>
-            <div className={styles.artistName}>{song.artist}</div>
-          </div>
-        ) : (
-          <div className={styles.trackInfo}>
-            <div className={styles.trackName}>Not Playing</div>
-            <div className={styles.artistName}>Spotify</div>
-          </div>
-        )}
-
-        {/* PLAYING INDICATOR */}
-        {isPlaying && (
-          <div className={styles.playingBars}>
-            <div className={styles.bar}></div>
-            <div className={styles.bar}></div>
-            <div className={styles.bar}></div>
-            <div className={styles.bar}></div>
-          </div>
-        )}
->>>>>>> b665557 (Update Spotify Widget with Framer Motion animations)
       </div>
     </a>
   );
 }
-<<<<<<< HEAD
 
 /* =========================
    ELASTIC SLIDER (TYPED FOR TS)
@@ -340,7 +276,7 @@ const Slider = ({
         ref={sliderRef}
         className="relative flex w-full items-center py-2 cursor-pointer"
         onPointerMove={handlePointerMove}
-        onPointerDown={handlePointerMove} // Allows clicking to jump
+        onPointerDown={handlePointerMove}
       >
         <motion.div className="w-full h-2 bg-white/10 rounded-full overflow-hidden">
           <div
@@ -354,5 +290,3 @@ const Slider = ({
     </motion.div>
   );
 };
-=======
->>>>>>> b665557 (Update Spotify Widget with Framer Motion animations)
