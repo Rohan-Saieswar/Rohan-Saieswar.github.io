@@ -39,10 +39,12 @@ export default function SpotifyWidget() {
           zIndex: 9999,
 
           padding: hover ? "18px" : "14px",
-          paddingRight: isPlaying ? "44px" : "18px", // 🔥 spacing for waveform
 
           borderRadius: "22px",
-          width: hover ? "280px" : "220px",
+
+          minWidth: "220px",
+          maxWidth: "360px", // 🔥 allows growth for long titles
+          width: "fit-content", // 🔥 dynamic sizing
 
           display: "flex",
           flexDirection: "column",
@@ -76,7 +78,7 @@ export default function SpotifyWidget() {
             minHeight: "48px",
           }}
         >
-          {/* ICON / ALBUM */}
+          {/* ICON */}
           <div style={{ flexShrink: 0, position: "relative" }}>
             {isPlaying ? (
               <img
@@ -105,30 +107,16 @@ export default function SpotifyWidget() {
                 ♪
               </div>
             )}
-
-            {/* Glow when playing */}
-            {isPlaying && (
-              <div
-                style={{
-                  position: "absolute",
-                  inset: "-6px",
-                  borderRadius: "16px",
-                  background: "rgba(29,185,84,0.3)",
-                  filter: "blur(12px)",
-                  animation: "pulse 2s infinite",
-                }}
-              />
-            )}
           </div>
 
           {/* TEXT */}
           <div
             style={{
-              flex: 1,
-              minWidth: 0,
               display: "flex",
               flexDirection: "column",
               justifyContent: "center",
+              minWidth: 0,
+              maxWidth: "220px", // 🔥 prevents collision
             }}
           >
             {isPlaying ? (
@@ -167,35 +155,32 @@ export default function SpotifyWidget() {
               </>
             )}
           </div>
-        </div>
 
-        {/* FLOATING WAVEFORM (FIXED POSITION) */}
-        {isPlaying && (
-          <div
-            style={{
-              position: "absolute",
-              right: "16px",
-              top: "50%",
-              transform: "translateY(-50%)",
-              display: "flex",
-              gap: "3px",
-              pointerEvents: "none",
-            }}
-          >
-            {[...Array(4)].map((_, i) => (
-              <div
-                key={i}
-                style={{
-                  width: "3px",
-                  height: "12px",
-                  background: "#1db954",
-                  borderRadius: "2px",
-                  animation: `wave 1s infinite ${i * 0.2}s`,
-                }}
-              />
-            ))}
-          </div>
-        )}
+          {/* WAVEFORM (inline but safe) */}
+          {isPlaying && (
+            <div
+              style={{
+                display: "flex",
+                gap: "3px",
+                marginLeft: "8px", // 🔥 spacing buffer
+                flexShrink: 0,
+              }}
+            >
+              {[...Array(4)].map((_, i) => (
+                <div
+                  key={i}
+                  style={{
+                    width: "3px",
+                    height: "12px",
+                    background: "#1db954",
+                    borderRadius: "2px",
+                    animation: `wave 1s infinite ${i * 0.2}s`,
+                  }}
+                />
+              ))}
+            </div>
+          )}
+        </div>
 
         {/* IDLE FOOTER */}
         {!isPlaying && (
@@ -218,12 +203,6 @@ export default function SpotifyWidget() {
             0% { height: 4px; }
             50% { height: 14px; }
             100% { height: 4px; }
-          }
-
-          @keyframes pulse {
-            0% { opacity: 0.4; }
-            50% { opacity: 0.9; }
-            100% { opacity: 0.4; }
           }
         `}
         </style>
