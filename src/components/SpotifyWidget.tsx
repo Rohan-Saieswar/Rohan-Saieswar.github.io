@@ -48,7 +48,6 @@ export default function SpotifyWidget() {
 
           borderRadius: "22px",
 
-          // 🔥 AUTO WIDTH
           width: "fit-content",
           minWidth: "260px",
           maxWidth: hover ? "420px" : "360px",
@@ -76,9 +75,7 @@ export default function SpotifyWidget() {
           overflow: "hidden",
         }}
       >
-        {/* TOP */}
         <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
-          {/* ICON */}
           <div style={{ position: "relative", flexShrink: 0 }}>
             {isPlaying ? (
               <img
@@ -110,7 +107,6 @@ export default function SpotifyWidget() {
             )}
           </div>
 
-          {/* TEXT */}
           <div style={{ display: "flex", flexDirection: "column" }}>
             {isPlaying ? (
               <>
@@ -151,7 +147,6 @@ export default function SpotifyWidget() {
             )}
           </div>
 
-          {/* WAVEFORM */}
           {isPlaying && (
             <div style={{ display: "flex", gap: "3px", marginLeft: "auto" }}>
               {[...Array(4)].map((_, i) => (
@@ -170,7 +165,6 @@ export default function SpotifyWidget() {
           )}
         </div>
 
-        {/* 🎚 SLIDER */}
         {isPlaying && (
           <ElasticSlider
             defaultValue={50}
@@ -182,7 +176,6 @@ export default function SpotifyWidget() {
           />
         )}
 
-        {/* IDLE FOOTER */}
         {!isPlaying && (
           <div
             style={{
@@ -283,7 +276,7 @@ const Slider = ({
         ref={sliderRef}
         className="relative flex w-full items-center py-2 cursor-pointer"
         onPointerMove={handlePointerMove}
-        onPointerDown={handlePointerMove} // Allows clicking to jump
+        onPointerDown={handlePointerMove}
       >
         <motion.div className="w-full h-2 bg-white/10 rounded-full overflow-hidden">
           <div
