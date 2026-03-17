@@ -1,94 +1,47 @@
-import { useState, useEffect } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { Music2 } from 'lucide-react';
-import styles from './SpotifyWidget.module.css';
+import { useEffect, useState } from "react";
 
-interface SpotifyData {
-  isPlaying: boolean;
-  title: string;
-  artist: string;
-  songUrl: string;
-  albumImageUrl?: string;
-}
+export default function SpotifyWidget() {
+  const [song, setSong] = useState<any>(null);
 
-const SpotifyWidget = () => {
-  const [data, setData] = useState<SpotifyData>({
-    isPlaying: false,
-    title: 'Not playing',
-    artist: 'Spotify',
-    songUrl: 'https://open.spotify.com/user/31jvlqqvdmeux47mctirqusrxuki'
-  });
+  async function getNowPlaying() {
+    try {
+      const res = await fetch("https://project-o0epg.vercel.app/api/now-playing");
+      const data = await res.json();
+      setSong(data);
+    } catch (err) {
+      console.error(err);
+    }
+  }
 
   useEffect(() => {
-    const fetchNowPlaying = async () => {
-      try {
-        const response = await fetch('/.netlify/functions/now-playing');
-        
-        // Handle non-JSON responses (like 404 HTML fallbacks in dev)
-        const contentType = response.headers.get('content-type');
-        if (!response.ok || !contentType || !contentType.includes('application/json')) {
-          throw new Error('Invalid response from server');
-        }
-
-        const songData = await response.json();
-        
-        if (songData.isPlaying) {
-          setData({
-            isPlaying: true,
-            title: songData.title,
-            artist: songData.artist,
-            songUrl: songData.songUrl,
-            albumImageUrl: songData.albumImageUrl
-          });
-        } else {
-          setData(prev => ({
-            ...prev,
-            isPlaying: false,
-            title: 'Not playing',
-            artist: 'Spotify'
-          }));
-        }
-      } catch (error) {
-        // Silent catch to prevent console flooding
-      }
-    };
-
-    fetchNowPlaying();
-    const interval = setInterval(fetchNowPlaying, 30000); // Update every 30 seconds
+    getNowPlaying();
+    const interval = setInterval(getNowPlaying, 10000);
     return () => clearInterval(interval);
   }, []);
 
-  return (
-    <AnimatePresence>
-      <motion.a 
-        href={data.songUrl !== '#' ? data.songUrl : undefined}
-        target="_blank"
-        rel="noreferrer"
-        className={styles.spotifyWidget}
-        initial={{ y: 100, opacity: 0 }}
-        animate={{ y: 0, opacity: 1 }}
-        transition={{ type: "spring", stiffness: 200, damping: 20, delay: 1 }}
-      >
-        <div className={styles.iconWrapper}>
-          {data.isPlaying ? (
-            <div className={styles.playingBars}>
-              <div className={styles.bar}></div>
-              <div className={styles.bar}></div>
-              <div className={styles.bar}></div>
-              <div className={styles.bar}></div>
-            </div>
-          ) : (
-            <Music2 size={20} />
-          )}
-        </div>
-        
-        <div className={styles.trackInfo}>
-          <span className={styles.trackName}>{data.title}</span>
-          <span className={styles.artistName}>{data.artist}</span>
-        </div>
-      </motion.a>
-    </AnimatePresence>
-  );
-};
+  if (!song || !song.isPlaying) {
+    return null; // cleaner than "Nothing playing"
+  }
 
-export default SpotifyWidget;
+  return (
+    <div style={{
+      position: "fixed",
+      bottom: "20px",
+      right: "20px",
+      background: "#111",
+      color: "white",
+      padding: "10px",
+      borderRadius: "12px",
+      display: "flex",
+      gap: "10px",
+      alignItems: "center",
+      boxShadow: "0 0 10px rgba(0,0,0,0.3)"
+    }}>
+      <img src={song.albumArt} width={50} style={{ borderRadius: "8px" }} />
+      <div>
+        <div style={{ fontWeight: "bold" }}>{song.title}</div>
+        <div style={{ fontSize: "12px", opacity: 0.7 }}>{song.artist}</div>
+      </div>
+    </div>
+  );
+}
