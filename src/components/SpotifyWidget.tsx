@@ -1,5 +1,15 @@
-import { useEffect, useState } from "react";
-import ElasticSlider from "./ElasticSlider";
+import React, { useEffect, useRef, useState } from "react";
+import {
+  animate,
+  motion,
+  useMotionValue,
+  useMotionValueEvent,
+  useTransform,
+} from "motion/react";
+
+/* =========================
+   SPOTIFY WIDGET
+========================= */
 
 export default function SpotifyWidget() {
   const [song, setSong] = useState<any>(null);
@@ -7,7 +17,9 @@ export default function SpotifyWidget() {
 
   async function getNowPlaying() {
     try {
-      const res = await fetch("https://project-o0epg.vercel.app/api/now-playing");
+      const res = await fetch(
+        "https://project-o0epg.vercel.app/api/now-playing"
+      );
       const data = await res.json();
       setSong(data);
     } catch (err) {
@@ -43,7 +55,11 @@ export default function SpotifyWidget() {
           paddingRight: isPlaying ? "56px" : "18px",
 
           borderRadius: "22px",
-          width: hover ? "340px" : "280px",
+
+          // 🔥 AUTO WIDTH
+          width: "fit-content",
+          minWidth: "260px",
+          maxWidth: hover ? "420px" : "360px",
 
           display: "flex",
           flexDirection: "column",
@@ -68,10 +84,9 @@ export default function SpotifyWidget() {
           overflow: "hidden",
         }}
       >
-        {/* TOP ROW */}
+        {/* TOP */}
         <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
-          
-          {/* ICON / ALBUM */}
+          {/* ICON */}
           <div style={{ position: "relative", flexShrink: 0 }}>
             {isPlaying ? (
               <img
@@ -100,37 +115,17 @@ export default function SpotifyWidget() {
                 ♪
               </div>
             )}
-
-            {/* Glow */}
-            {isPlaying && (
-              <div
-                style={{
-                  position: "absolute",
-                  inset: "-6px",
-                  borderRadius: "16px",
-                  background: "rgba(29,185,84,0.3)",
-                  filter: "blur(12px)",
-                  animation: "pulse 2s infinite",
-                }}
-              />
-            )}
           </div>
 
           {/* TEXT */}
-          <div
-            style={{
-              flex: 1,
-              minWidth: 0,
-              display: "flex",
-              flexDirection: "column",
-            }}
-          >
+          <div style={{ display: "flex", flexDirection: "column" }}>
             {isPlaying ? (
               <>
                 <span
                   style={{
                     fontWeight: 600,
                     fontSize: "14px",
+                    maxWidth: "260px",
                     whiteSpace: "nowrap",
                     overflow: "hidden",
                     textOverflow: "ellipsis",
@@ -142,6 +137,7 @@ export default function SpotifyWidget() {
                   style={{
                     fontSize: "11px",
                     opacity: 0.6,
+                    maxWidth: "260px",
                     whiteSpace: "nowrap",
                     overflow: "hidden",
                     textOverflow: "ellipsis",
@@ -181,18 +177,16 @@ export default function SpotifyWidget() {
           )}
         </div>
 
-        {/* SLIDER */}
+        {/* 🎚 SLIDER */}
         {isPlaying && (
-          <div style={{ marginTop: "4px" }}>
-            <ElasticSlider
-              defaultValue={50}
-              startingValue={0}
-              maxValue={100}
-              className="w-full"
-              leftIcon={<span style={{ fontSize: "12px" }}>🎵</span>}
-              rightIcon={<span style={{ fontSize: "12px" }}>🔊</span>}
-            />
-          </div>
+          <ElasticSlider
+            defaultValue={50}
+            startingValue={0}
+            maxValue={100}
+            className="w-full"
+            leftIcon={<span style={{ fontSize: "12px" }}>🎵</span>}
+            rightIcon={<span style={{ fontSize: "12px" }}>🔊</span>}
+          />
         )}
 
         {/* IDLE FOOTER */}
@@ -208,7 +202,6 @@ export default function SpotifyWidget() {
           </div>
         )}
 
-        {/* ANIMATIONS */}
         <style>
           {`
           @keyframes wave {
@@ -216,15 +209,114 @@ export default function SpotifyWidget() {
             50% { height: 14px; }
             100% { height: 4px; }
           }
-
-          @keyframes pulse {
-            0% { opacity: 0.4; }
-            50% { opacity: 0.9; }
-            100% { opacity: 0.4; }
-          }
         `}
         </style>
       </div>
     </a>
   );
+}
+
+/* =========================
+   ELASTIC SLIDER (UNCHANGED)
+========================= */
+
+const MAX_OVERFLOW = 50;
+
+const ElasticSlider = ({
+  defaultValue = 50,
+  startingValue = 0,
+  maxValue = 100,
+  className = "",
+  isStepped = false,
+  stepSize = 1,
+  leftIcon = <>-</>,
+  rightIcon = <>+</>,
+}) => {
+  return (
+    <div className={`flex flex-col items-center justify-center gap-4 w-full ${className}`}>
+      <Slider
+        defaultValue={defaultValue}
+        startingValue={startingValue}
+        maxValue={maxValue}
+        isStepped={isStepped}
+        stepSize={stepSize}
+        leftIcon={leftIcon}
+        rightIcon={rightIcon}
+      />
+    </div>
+  );
+};
+
+const Slider = ({
+  defaultValue,
+  startingValue,
+  maxValue,
+  isStepped,
+  stepSize,
+  leftIcon,
+  rightIcon,
+}) => {
+  const [value, setValue] = useState(defaultValue);
+  const sliderRef = useRef(null);
+  const [region, setRegion] = useState("middle");
+  const clientX = useMotionValue(0);
+  const overflow = useMotionValue(0);
+  const scale = useMotionValue(1);
+
+  useMotionValueEvent(clientX, "change", (latest) => {
+    if (!sliderRef.current) return;
+    const { left, right } = sliderRef.current.getBoundingClientRect();
+    let newValue = 0;
+
+    if (latest < left) {
+      setRegion("left");
+      newValue = left - latest;
+    } else if (latest > right) {
+      setRegion("right");
+      newValue = latest - right;
+    } else {
+      setRegion("middle");
+    }
+
+    overflow.jump(decay(newValue, MAX_OVERFLOW));
+  });
+
+  const handlePointerMove = (e) => {
+    if (e.buttons > 0 && sliderRef.current) {
+      const { left, width } = sliderRef.current.getBoundingClientRect();
+      let newValue =
+        startingValue +
+        ((e.clientX - left) / width) * (maxValue - startingValue);
+
+      newValue = Math.min(Math.max(newValue, startingValue), maxValue);
+      setValue(newValue);
+      clientX.jump(e.clientX);
+    }
+  };
+
+  return (
+    <motion.div className="flex w-full items-center gap-4">
+      {leftIcon}
+
+      <div
+        ref={sliderRef}
+        className="relative flex w-full items-center py-2"
+        onPointerMove={handlePointerMove}
+      >
+        <motion.div className="w-full h-2 bg-white/10 rounded-full overflow-hidden">
+          <div
+            className="h-full bg-green-500"
+            style={{ width: `${(value / maxValue) * 100}%` }}
+          />
+        </motion.div>
+      </div>
+
+      {rightIcon}
+    </motion.div>
+  );
+};
+
+function decay(value, max) {
+  const entry = value / max;
+  return (2 * (1 / (1 + Math.exp(-entry)) - 0.5)) * max;
 }
