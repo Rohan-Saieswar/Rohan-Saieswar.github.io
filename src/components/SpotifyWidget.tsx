@@ -58,26 +58,38 @@ export default function SpotifyWidget() {
       >
         {/* TOP */}
         <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
-          {/* Album */}
-          <div
-            style={{
-              position: "relative",
-            }}
-          >
-            <img
-              src={
-                isPlaying
-                  ? song.albumArt
-                  : "https://cdn-icons-png.flaticon.com/512/727/727245.png"
-              }
-              width={hover ? 56 : 44}
-              style={{
-                borderRadius: "14px",
-                transition: "all 0.3s ease",
-              }}
-            />
+          
+          {/* ICON / ALBUM */}
+          <div style={{ position: "relative" }}>
+            {isPlaying ? (
+              <img
+                src={song.albumArt}
+                width={hover ? 56 : 44}
+                style={{
+                  borderRadius: "14px",
+                  transition: "all 0.3s ease",
+                }}
+              />
+            ) : (
+              <div
+                style={{
+                  width: hover ? 56 : 44,
+                  height: hover ? 56 : 44,
+                  borderRadius: "14px",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  background: "rgba(255,255,255,0.05)",
+                  color: "#aaa",
+                  fontSize: "20px",
+                  transition: "all 0.3s ease",
+                }}
+              >
+                ♪
+              </div>
+            )}
 
-            {/* Glow pulse */}
+            {/* Glow when playing */}
             {isPlaying && (
               <div
                 style={{
@@ -96,7 +108,16 @@ export default function SpotifyWidget() {
           <div style={{ display: "flex", flexDirection: "column" }}>
             {isPlaying ? (
               <>
-                <span style={{ fontWeight: 600, fontSize: "14px" }}>
+                <span
+                  style={{
+                    fontWeight: 600,
+                    fontSize: "14px",
+                    whiteSpace: "nowrap",
+                    overflow: "hidden",
+                    textOverflow: "ellipsis",
+                    maxWidth: "180px",
+                  }}
+                >
                   {song.title}
                 </span>
                 <span style={{ fontSize: "11px", opacity: 0.6 }}>
@@ -106,10 +127,10 @@ export default function SpotifyWidget() {
             ) : (
               <>
                 <span style={{ fontWeight: 600, fontSize: "14px" }}>
-                  Spotify Idle
+                  Listening
                 </span>
                 <span style={{ fontSize: "11px", opacity: 0.5 }}>
-                  Nothing playing right now
+                  waiting for your next vibe...
                 </span>
               </>
             )}
@@ -155,20 +176,6 @@ export default function SpotifyWidget() {
                 }}
               />
             </div>
-          </div>
-        )}
-
-        {/* IDLE BEAUTY */}
-        {!isPlaying && (
-          <div
-            style={{
-              textAlign: "center",
-              fontSize: "11px",
-              opacity: 0.4,
-              marginTop: "4px",
-            }}
-          >
-            🎧 waiting for your next vibe...
           </div>
         )}
 
