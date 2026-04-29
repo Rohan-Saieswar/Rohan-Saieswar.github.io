@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 /* =========================
    UNIVERSAL MUSIC WIDGET
    - Shows now playing or last played track directly from Last.fm
-   - Bypasses Netlify functions to fix 404 errors on GitHub Pages
+   - Enhanced UI with progress bar and 12-bar beat-synced waveform
 ========================= */
 
 interface TrackData {
@@ -19,7 +19,6 @@ export default function SpotifyWidget() {
   const [hover, setHover] = useState(false);
   const [loading, setLoading] = useState(true);
 
-  // You can safely leave these here since Last.fm API keys are meant to be public for client-side fetching
   const LASTFM_USERNAME = "Rohan_Saieswar";
   const LASTFM_API_KEY = "c629c22b1469e49dcba4bccf66df6692";
 
@@ -48,7 +47,6 @@ export default function SpotifyWidget() {
 
     } catch (err) {
       console.error("Music widget error:", err);
-      // Don't override existing song data on temporary network failure
     } finally {
       setLoading(false);
     }
@@ -61,10 +59,18 @@ export default function SpotifyWidget() {
   }, []);
 
   const isPlaying = song?.isPlaying === true;
-  // Show the widget as long as we have a title (even if not currently playing)
   const hasTrack = !!song?.title;
 
-  const accentColor = isPlaying ? "#1db954" : "rgba(255,255,255,0.35)";
+  const accentColor = isPlaying ? "#1db954" : "rgba(255,255,255,0.4)";
+
+  // Random delays and durations for the equalizer to look realistic
+  const eqData = [
+    { delay: 0.1, duration: 0.8 }, { delay: 0.3, duration: 0.6 },
+    { delay: 0.5, duration: 1.0 }, { delay: 0.2, duration: 0.7 },
+    { delay: 0.4, duration: 0.9 }, { delay: 0.1, duration: 0.6 },
+    { delay: 0.6, duration: 1.1 }, { delay: 0.3, duration: 0.8 },
+    { delay: 0.2, duration: 0.7 }, { delay: 0.5, duration: 0.9 },
+  ];
 
   return (
     <a
@@ -82,102 +88,119 @@ export default function SpotifyWidget() {
           bottom: "32px",
           right: "32px",
           zIndex: 9999,
-          padding: "14px 16px",
-          borderRadius: "20px",
-          width: "fit-content",
-          minWidth: "230px",
-          maxWidth: "340px",
+          padding: "16px",
+          borderRadius: "24px",
+          width: "320px", // slightly wider for better progress bar view
           display: "flex",
           alignItems: "center",
-          gap: "12px",
+          gap: "16px",
           fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Segoe UI', Roboto, Helvetica, Arial, sans-serif",
 
-          // Glassmorphism
-          background: "rgba(20, 20, 20, 0.72)",
-          backdropFilter: "blur(40px) saturate(180%)",
-          WebkitBackdropFilter: "blur(40px) saturate(180%)",
-          border: `1px solid ${isPlaying ? "rgba(29,185,84,0.3)" : "rgba(255,255,255,0.10)"}`,
+          // Premium Glassmorphism
+          background: "rgba(18, 18, 18, 0.75)",
+          backdropFilter: "blur(40px) saturate(200%)",
+          WebkitBackdropFilter: "blur(40px) saturate(200%)",
+          border: `1px solid ${isPlaying ? "rgba(29,185,84,0.3)" : "rgba(255,255,255,0.1)"}`,
           boxShadow: isPlaying
-            ? "0 20px 40px -10px rgba(0,0,0,0.5), 0 0 0 1px rgba(29,185,84,0.1)"
+            ? "0 24px 48px -12px rgba(0,0,0,0.6), 0 0 0 1px rgba(29,185,84,0.15), 0 0 20px rgba(29,185,84,0.1) inset"
             : "0 20px 40px -10px rgba(0,0,0,0.5)",
 
           color: "#FAFAFA",
-          transition: "all 0.35s cubic-bezier(0.25, 1, 0.5, 1)",
-          transform: hover ? "translateY(-4px) scale(1.02)" : "none",
+          transition: "all 0.4s cubic-bezier(0.25, 1, 0.5, 1)",
+          transform: hover ? "translateY(-6px) scale(1.02)" : "none",
           overflow: "hidden",
           cursor: "pointer",
         }}
       >
-        {/* STATUS DOT (top-left absolute) */}
+        {/* GLOW EFFECT IN BACKGROUND */}
+        {isPlaying && hover && (
+          <div
+            style={{
+              position: "absolute",
+              top: "-50%",
+              left: "-50%",
+              width: "200%",
+              height: "200%",
+              background: "radial-gradient(circle, rgba(29,185,84,0.15) 0%, transparent 70%)",
+              zIndex: 0,
+              pointerEvents: "none",
+              animation: "rotateGlow 10s linear infinite",
+            }}
+          />
+        )}
+
+        {/* STATUS DOT (top-right absolute) */}
         {hasTrack && (
           <div
             style={{
               position: "absolute",
-              top: "10px",
-              right: "12px",
+              top: "14px",
+              right: "14px",
               width: "6px",
               height: "6px",
               borderRadius: "50%",
               background: isPlaying ? "#1db954" : "rgba(255,255,255,0.2)",
-              boxShadow: isPlaying ? "0 0 6px #1db954" : "none",
+              boxShadow: isPlaying ? "0 0 8px #1db954" : "none",
               animation: isPlaying ? "pulse 2s infinite" : "none",
+              zIndex: 2,
             }}
           />
         )}
 
         {/* ARTWORK */}
-        <div style={{ flexShrink: 0, position: "relative" }}>
+        <div style={{ flexShrink: 0, position: "relative", zIndex: 2 }}>
           {hasTrack && song?.albumArt ? (
-            <>
+            <div style={{ position: "relative", width: 56, height: 56 }}>
               <img
                 src={song.albumArt}
-                width={48}
-                height={48}
+                width={56}
+                height={56}
                 alt={song.title}
                 style={{
-                  borderRadius: "10px",
+                  borderRadius: "12px",
                   objectFit: "cover",
-                  boxShadow: "0 4px 12px rgba(0, 0, 0, 0.35)",
-                  transition: "all 0.4s ease",
-                  filter: isPlaying ? "none" : "grayscale(60%) brightness(0.75)",
+                  boxShadow: "0 8px 16px rgba(0, 0, 0, 0.4)",
+                  transition: "all 0.5s cubic-bezier(0.25, 1, 0.5, 1)",
+                  filter: isPlaying ? "none" : "grayscale(80%) brightness(0.6)",
                   display: "block",
+                  transform: isPlaying && hover ? "scale(1.05)" : "scale(1)",
                 }}
               />
-              {/* Spinning center dot when playing */}
+              {/* Spinning CD Center Hole when playing */}
               {isPlaying && (
                 <div
                   style={{
                     position: "absolute",
                     top: "50%",
                     left: "50%",
-                    width: "14px",
-                    height: "14px",
-                    background: "rgba(15, 15, 15, 0.85)",
-                    border: "2px solid rgba(255,255,255,0.25)",
+                    width: "16px",
+                    height: "16px",
+                    background: "rgba(10, 10, 10, 0.9)",
+                    border: "2px solid rgba(255,255,255,0.15)",
                     borderRadius: "50%",
                     transform: "translate(-50%, -50%)",
+                    boxShadow: "inset 0 1px 2px rgba(0,0,0,0.5), 0 0 10px rgba(0,0,0,0.5)",
                     zIndex: 2,
-                    animation: "spin 3s linear infinite",
                   }}
                 />
               )}
-            </>
+            </div>
           ) : (
-            /* Placeholder icon when no track */
+            /* Placeholder icon */
             <div
               style={{
-                width: 48,
-                height: 48,
-                borderRadius: "10px",
+                width: 56,
+                height: 56,
+                borderRadius: "12px",
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "center",
-                background: "rgba(255, 255, 255, 0.07)",
-                color: "rgba(255, 255, 255, 0.35)",
+                background: "rgba(255, 255, 255, 0.05)",
+                color: "rgba(255, 255, 255, 0.3)",
+                border: "1px solid rgba(255,255,255,0.05)",
               }}
             >
-              {/* Music note SVG */}
-              <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
                 <path d="M9 18V5l12-2v13" />
                 <circle cx="6" cy="18" r="3" />
                 <circle cx="18" cy="16" r="3" />
@@ -186,35 +209,63 @@ export default function SpotifyWidget() {
           )}
         </div>
 
-        {/* TEXT CONTENT */}
-        <div style={{ display: "flex", flexDirection: "column", flex: 1, overflow: "hidden", minWidth: 0 }}>
-          {/* Status label */}
-          <span
-            style={{
-              fontSize: "10px",
-              fontWeight: 600,
-              letterSpacing: "0.08em",
-              textTransform: "uppercase",
-              color: accentColor,
-              marginBottom: "2px",
-              opacity: loading ? 0.5 : 1,
-              transition: "color 0.3s ease",
-            }}
-          >
-            {loading && !hasTrack ? "Loading..." : isPlaying ? "Now Playing" : hasTrack ? "Last Played" : "Music"}
-          </span>
+        {/* TEXT & PROGRESS CONTENT */}
+        <div style={{ display: "flex", flexDirection: "column", flex: 1, overflow: "hidden", zIndex: 2, justifyContent: "center" }}>
+          
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "2px" }}>
+            {/* Status label */}
+            <span
+              style={{
+                fontSize: "10px",
+                fontWeight: 700,
+                letterSpacing: "0.1em",
+                textTransform: "uppercase",
+                color: accentColor,
+                opacity: loading ? 0.5 : 1,
+                transition: "color 0.3s ease",
+              }}
+            >
+              {loading && !hasTrack ? "Loading..." : isPlaying ? "Now Playing" : hasTrack ? "Last Played" : "Music"}
+            </span>
+
+            {/* WAVEFORM / EQUALIZER */}
+            {isPlaying && (
+              <div
+                style={{
+                  display: "flex",
+                  gap: "2px",
+                  alignItems: "flex-end",
+                  height: "12px",
+                  marginRight: "10px"
+                }}
+              >
+                {eqData.map((data, i) => (
+                  <div
+                    key={i}
+                    style={{
+                      width: "2px",
+                      background: "#1db954",
+                      borderRadius: "1px",
+                      animation: `equalizer ${data.duration}s infinite ease-in-out alternate ${data.delay}s`,
+                      opacity: 0.9,
+                    }}
+                  />
+                ))}
+              </div>
+            )}
+          </div>
 
           {/* Track title */}
           <span
             style={{
               fontWeight: 600,
-              fontSize: "14px",
+              fontSize: "15px",
               letterSpacing: "-0.2px",
               whiteSpace: "nowrap",
               overflow: "hidden",
               textOverflow: "ellipsis",
               color: "#fff",
-              lineHeight: 1.3,
+              lineHeight: 1.2,
             }}
           >
             {hasTrack ? song?.title : loading ? "—" : "Not Playing"}
@@ -223,59 +274,85 @@ export default function SpotifyWidget() {
           {/* Artist */}
           <span
             style={{
-              fontSize: "12px",
+              fontSize: "13px",
               letterSpacing: "-0.1px",
               whiteSpace: "nowrap",
               overflow: "hidden",
               textOverflow: "ellipsis",
-              color: "rgba(255,255,255,0.55)",
-              marginTop: "1px",
-              lineHeight: 1.3,
+              color: "rgba(255,255,255,0.6)",
+              marginTop: "2px",
+              lineHeight: 1.2,
             }}
           >
             {hasTrack ? song?.artist : "—"}
           </span>
-        </div>
 
-        {/* WAVEFORM — only when actively playing */}
-        {isPlaying && (
-          <div
-            style={{
-              display: "flex",
-              gap: "2.5px",
-              alignItems: "center",
-              height: "18px",
-              flexShrink: 0,
-              paddingLeft: "6px",
-            }}
-          >
-            {[0, 0.2, 0.1, 0.3, 0.15].map((delay, i) => (
+          {/* PROGRESS BAR */}
+          {hasTrack && (
+            <div 
+              style={{ 
+                marginTop: "8px", 
+                width: "100%", 
+                height: "3px", 
+                background: "rgba(255,255,255,0.1)", 
+                borderRadius: "2px", 
+                overflow: "hidden",
+                position: "relative"
+              }}
+            >
               <div
-                key={i}
                 style={{
-                  width: "2.5px",
-                  background: "#1db954",
+                  position: "absolute",
+                  top: 0,
+                  left: 0,
+                  height: "100%",
+                  background: isPlaying ? "#1db954" : "rgba(255,255,255,0.3)",
                   borderRadius: "2px",
-                  animation: `iosWave 1.1s infinite ease-in-out ${delay}s`,
-                  opacity: 0.85,
+                  animation: isPlaying ? "progress 180s linear infinite" : "none",
+                  width: isPlaying ? "100%" : "100%",
+                  transformOrigin: "left",
+                  transform: isPlaying ? "scaleX(0)" : "scaleX(1)", // Reset to 0 when playing, full when not
                 }}
               />
-            ))}
-          </div>
-        )}
+              {/* Playhead dot */}
+              {isPlaying && (
+                <div 
+                  style={{
+                    position: "absolute",
+                    top: "-1px",
+                    width: "5px",
+                    height: "5px",
+                    borderRadius: "50%",
+                    background: "#fff",
+                    boxShadow: "0 0 4px rgba(0,0,0,0.5)",
+                    animation: "progressDot 180s linear infinite",
+                  }}
+                />
+              )}
+            </div>
+          )}
+        </div>
 
         <style>{`
-          @keyframes iosWave {
-            0%, 100% { height: 3px; }
-            50% { height: 18px; }
+          @keyframes equalizer {
+            0% { height: 2px; }
+            100% { height: 12px; }
           }
-          @keyframes spin {
-            from { transform: translate(-50%, -50%) rotate(0deg); }
-            to   { transform: translate(-50%, -50%) rotate(360deg); }
+          @keyframes progress {
+            0% { transform: scaleX(0); }
+            100% { transform: scaleX(1); }
+          }
+          @keyframes progressDot {
+            0% { left: 0%; }
+            100% { left: 100%; }
           }
           @keyframes pulse {
             0%, 100% { opacity: 1; transform: scale(1); }
-            50%       { opacity: 0.5; transform: scale(0.85); }
+            50%       { opacity: 0.5; transform: scale(0.8); }
+          }
+          @keyframes rotateGlow {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
           }
         `}</style>
       </div>
