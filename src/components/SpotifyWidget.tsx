@@ -10,7 +10,7 @@ export default function SpotifyWidget() {
 
   async function getNowPlaying() {
     try {
-      const res = await fetch("https://project-o0epg.vercel.app/api/now-playing");
+      const res = await fetch("/.netlify/functions/now-playing");
       const data = await res.json();
       setSong(data);
     } catch (err) {
@@ -25,10 +25,11 @@ export default function SpotifyWidget() {
   }, []);
 
   const isPlaying = song && song.isPlaying;
+  const isApple = song?.provider === "apple";
 
   return (
     <a
-      href={isPlaying ? song.songUrl : "#"}
+      href={isPlaying ? song.songUrl || "#" : "#"}
       target="_blank"
       rel="noopener noreferrer"
       style={{
@@ -54,11 +55,13 @@ export default function SpotifyWidget() {
           gap: "14px",
           
           // APPLE GLASSMORPHISM EFFECT
-          background: "rgba(20, 20, 20, 0.4)",
+          background: isApple ? "rgba(250, 36, 60, 0.4)" : "rgba(20, 20, 20, 0.4)",
           backdropFilter: "blur(40px) saturate(180%)",
           WebkitBackdropFilter: "blur(40px) saturate(180%)",
           border: "1px solid rgba(255, 255, 255, 0.12)",
-          boxShadow: "0 20px 40px -10px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.1)",
+          boxShadow: isApple 
+            ? "0 20px 40px -10px rgba(250, 36, 60, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.1)"
+            : "0 20px 40px -10px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.1)",
           
           color: "#FAFAFA",
           transition: "all 0.4s cubic-bezier(0.25, 1, 0.5, 1)",
@@ -70,7 +73,7 @@ export default function SpotifyWidget() {
         <div style={{ flexShrink: 0 }}>
           {isPlaying ? (
             <img
-              src={song.albumArt}
+              src={song.albumArt || song.albumImageUrl}
               width={52}
               height={52}
               alt="Art"
@@ -126,7 +129,7 @@ export default function SpotifyWidget() {
               textOverflow: "ellipsis",
             }}
           >
-            {isPlaying ? song.artist : "Spotify"}
+            {isPlaying ? song.artist : "Music"}
           </span>
         </div>
 
