@@ -2,9 +2,8 @@ import { useEffect, useState } from "react";
 
 /* =========================
    UNIVERSAL MUSIC WIDGET
-   - Shows now playing or last played track from Last.fm
-   - Provider detection not available via Last.fm API,
-     so we show a generic music icon
+   - Shows now playing or last played track directly from Last.fm
+   - Bypasses Netlify functions to fix 404 errors on GitHub Pages
 ========================= */
 
 interface TrackData {
@@ -13,7 +12,6 @@ interface TrackData {
   artist?: string;
   albumArt?: string;
   url?: string;
-  provider?: string;
 }
 
 export default function SpotifyWidget() {
@@ -21,13 +19,36 @@ export default function SpotifyWidget() {
   const [hover, setHover] = useState(false);
   const [loading, setLoading] = useState(true);
 
+  // You can safely leave these here since Last.fm API keys are meant to be public for client-side fetching
+  const LASTFM_USERNAME = "Rohan_Saieswar";
+  const LASTFM_API_KEY = "c629c22b1469e49dcba4bccf66df6692";
+
   async function getNowPlaying() {
     try {
-      const res = await fetch("/.netlify/functions/now-playing");
-      const data: TrackData = await res.json();
-      setSong(data);
+      const url = `https://ws.audioscrobbler.com/2.0/?method=user.getrecenttracks&user=${LASTFM_USERNAME}&api_key=${LASTFM_API_KEY}&format=json&limit=1`;
+      
+      const res = await fetch(url);
+      const data = await res.json();
+      
+      const track = data?.recenttracks?.track?.[0];
+      if (!track) {
+        setSong({ isPlaying: false });
+        return;
+      }
+
+      const isPlaying = track["@attr"]?.nowplaying === "true";
+
+      setSong({
+        isPlaying,
+        title: track.name,
+        artist: track.artist?.["#text"],
+        albumArt: track.image?.[2]?.["#text"] || "",
+        url: track.url,
+      });
+
     } catch (err) {
       console.error("Music widget error:", err);
+      // Don't override existing song data on temporary network failure
     } finally {
       setLoading(false);
     }
@@ -180,7 +201,7 @@ export default function SpotifyWidget() {
               transition: "color 0.3s ease",
             }}
           >
-            {loading ? "Loading..." : isPlaying ? "Now Playing" : hasTrack ? "Last Played" : "Music"}
+            {loading && !hasTrack ? "Loading..." : isPlaying ? "Now Playing" : hasTrack ? "Last Played" : "Music"}
           </span>
 
           {/* Track title */}
