@@ -1,9 +1,10 @@
 import { useEffect, useState } from "react";
+import { FaSpotify, FaApple } from "react-icons/fa"; // Using react-icons to show both platforms
 
 /* =========================
    UNIVERSAL MUSIC WIDGET
    - Shows now playing or last played track directly from Last.fm
-   - Enhanced UI with progress bar and 12-bar beat-synced waveform
+   - Enhanced UI with progress bar and 10-bar beat-synced waveform
 ========================= */
 
 interface TrackData {
@@ -63,7 +64,7 @@ export default function SpotifyWidget() {
 
   const accentColor = isPlaying ? "#1db954" : "rgba(255,255,255,0.4)";
 
-  // Random delays and durations for the equalizer to look realistic
+  // Random delays and durations for the equalizer
   const eqData = [
     { delay: 0.1, duration: 0.8 }, { delay: 0.3, duration: 0.6 },
     { delay: 0.5, duration: 1.0 }, { delay: 0.2, duration: 0.7 },
@@ -90,14 +91,14 @@ export default function SpotifyWidget() {
           zIndex: 9999,
           padding: "16px",
           borderRadius: "24px",
-          width: "320px", // slightly wider for better progress bar view
+          width: "320px",
           display: "flex",
           alignItems: "center",
           gap: "16px",
           fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Segoe UI', Roboto, Helvetica, Arial, sans-serif",
 
           // Premium Glassmorphism
-          background: "rgba(18, 18, 18, 0.75)",
+          background: "rgba(18, 18, 18, 0.8)",
           backdropFilter: "blur(40px) saturate(200%)",
           WebkitBackdropFilter: "blur(40px) saturate(200%)",
           border: `1px solid ${isPlaying ? "rgba(29,185,84,0.3)" : "rgba(255,255,255,0.1)"}`,
@@ -147,23 +148,34 @@ export default function SpotifyWidget() {
           />
         )}
 
-        {/* ARTWORK */}
+        {/* ARTWORK (SPINNING VINYL) */}
         <div style={{ flexShrink: 0, position: "relative", zIndex: 2 }}>
           {hasTrack && song?.albumArt ? (
-            <div style={{ position: "relative", width: 56, height: 56 }}>
+            <div 
+              style={{ 
+                position: "relative", 
+                width: 56, 
+                height: 56,
+                // Make it circular when playing to look like a record
+                borderRadius: isPlaying ? "50%" : "12px",
+                overflow: "hidden",
+                boxShadow: "0 8px 16px rgba(0, 0, 0, 0.4)",
+                transition: "all 0.5s cubic-bezier(0.25, 1, 0.5, 1)",
+                animation: isPlaying ? "spin 4s linear infinite" : "none",
+                transformOrigin: "center center",
+              }}
+            >
               <img
                 src={song.albumArt}
                 width={56}
                 height={56}
                 alt={song.title}
                 style={{
-                  borderRadius: "12px",
+                  width: "100%",
+                  height: "100%",
                   objectFit: "cover",
-                  boxShadow: "0 8px 16px rgba(0, 0, 0, 0.4)",
-                  transition: "all 0.5s cubic-bezier(0.25, 1, 0.5, 1)",
                   filter: isPlaying ? "none" : "grayscale(80%) brightness(0.6)",
                   display: "block",
-                  transform: isPlaying && hover ? "scale(1.05)" : "scale(1)",
                 }}
               />
               {/* Spinning CD Center Hole when playing */}
@@ -173,13 +185,13 @@ export default function SpotifyWidget() {
                     position: "absolute",
                     top: "50%",
                     left: "50%",
-                    width: "16px",
-                    height: "16px",
-                    background: "rgba(10, 10, 10, 0.9)",
-                    border: "2px solid rgba(255,255,255,0.15)",
+                    width: "14px",
+                    height: "14px",
+                    background: "#111",
+                    border: "2px solid rgba(255,255,255,0.2)",
                     borderRadius: "50%",
                     transform: "translate(-50%, -50%)",
-                    boxShadow: "inset 0 1px 2px rgba(0,0,0,0.5), 0 0 10px rgba(0,0,0,0.5)",
+                    boxShadow: "0 0 8px rgba(0,0,0,0.8)",
                     zIndex: 2,
                   }}
                 />
@@ -213,20 +225,30 @@ export default function SpotifyWidget() {
         <div style={{ display: "flex", flexDirection: "column", flex: 1, overflow: "hidden", zIndex: 2, justifyContent: "center" }}>
           
           <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "2px" }}>
-            {/* Status label */}
-            <span
-              style={{
-                fontSize: "10px",
-                fontWeight: 700,
-                letterSpacing: "0.1em",
-                textTransform: "uppercase",
-                color: accentColor,
-                opacity: loading ? 0.5 : 1,
-                transition: "color 0.3s ease",
-              }}
-            >
-              {loading && !hasTrack ? "Loading..." : isPlaying ? "Now Playing" : hasTrack ? "Last Played" : "Music"}
-            </span>
+            {/* Status label + Platform Icons */}
+            <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
+              <span
+                style={{
+                  fontSize: "10px",
+                  fontWeight: 700,
+                  letterSpacing: "0.1em",
+                  textTransform: "uppercase",
+                  color: accentColor,
+                  opacity: loading ? 0.5 : 1,
+                  transition: "color 0.3s ease",
+                }}
+              >
+                {loading && !hasTrack ? "Loading..." : isPlaying ? "Now Playing" : hasTrack ? "Last Played" : "Music"}
+              </span>
+              
+              {/* Show Universal Music Icons since Last.fm merges all providers */}
+              {hasTrack && !loading && (
+                <div style={{ display: "flex", gap: "4px", color: "rgba(255,255,255,0.4)" }}>
+                  <FaSpotify size={10} color={isPlaying ? "#1db954" : "rgba(255,255,255,0.3)"} />
+                  <FaApple size={10} color={isPlaying ? "#fa243c" : "rgba(255,255,255,0.3)"} />
+                </div>
+              )}
+            </div>
 
             {/* WAVEFORM / EQUALIZER */}
             {isPlaying && (
@@ -353,6 +375,10 @@ export default function SpotifyWidget() {
           @keyframes rotateGlow {
             0% { transform: rotate(0deg); }
             100% { transform: rotate(360deg); }
+          }
+          @keyframes spin {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
           }
         `}</style>
       </div>
