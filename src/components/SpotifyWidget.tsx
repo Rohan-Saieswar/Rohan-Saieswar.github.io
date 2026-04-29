@@ -1,9 +1,10 @@
 import { useEffect, useState } from "react";
-import { FaSpotify, FaApple } from "react-icons/fa"; // Using react-icons to show both platforms
+import { FaSpotify, FaApple } from "react-icons/fa";
 
 /* =========================
    UNIVERSAL MUSIC WIDGET
    - Shows now playing or last played track directly from Last.fm
+   - Uses iTunes API as a fallback when Last.fm misses album art
    - Enhanced UI with progress bar and 10-bar beat-synced waveform
 ========================= */
 
@@ -37,12 +38,32 @@ export default function SpotifyWidget() {
       }
 
       const isPlaying = track["@attr"]?.nowplaying === "true";
+      const title = track.name;
+      const artist = track.artist?.["#text"];
+      let albumArt = track.image?.[3]?.["#text"] || track.image?.[2]?.["#text"] || ""; // Try extralarge first
+
+      // Last.fm's default grey star placeholder hash
+      const isDefaultPlaceholder = albumArt.includes("2a96cbd8b46e442fc41c2b86b821562f");
+
+      // Fallback: If Last.fm gives us the grey star placeholder, fetch the REAL album art from iTunes!
+      if (!albumArt || isDefaultPlaceholder) {
+        try {
+          const itunesRes = await fetch(`https://itunes.apple.com/search?term=${encodeURIComponent(title + " " + artist)}&entity=song&limit=1`);
+          const itunesData = await itunesRes.json();
+          if (itunesData.results && itunesData.results.length > 0) {
+            // Get the 100x100 art and upgrade it to 600x600 for crisp quality
+            albumArt = itunesData.results[0].artworkUrl100.replace("100x100bb", "600x600bb");
+          }
+        } catch (e) {
+          console.error("iTunes fallback failed", e);
+        }
+      }
 
       setSong({
         isPlaying,
-        title: track.name,
-        artist: track.artist?.["#text"],
-        albumArt: track.image?.[2]?.["#text"] || "",
+        title,
+        artist,
+        albumArt,
         url: track.url,
       });
 
