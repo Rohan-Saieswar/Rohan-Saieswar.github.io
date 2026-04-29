@@ -38,9 +38,7 @@ export const handler = async () => {
       }
     }
 
-    const isPlaying =
-      track["@attr"]?.nowplaying === "true" ||
-      (Date.now() - parseInt(track?.date?.uts || "0") * 1000 < 180000)
+    const isPlaying = track["@attr"]?.nowplaying === "true"
 
     return {
       statusCode: 200,
@@ -52,7 +50,8 @@ export const handler = async () => {
         title: track.name,
         artist: track.artist["#text"],
         albumArt: track.image?.[2]?.["#text"] || "",
-        provider: track.url?.includes("spotify") ? "spotify" : "apple"
+        url: track.url,
+        provider: "music"
       })
     }
   } catch {
