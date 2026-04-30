@@ -1,6 +1,8 @@
 import { useEffect, useState } from "react";
 
-const NOW_PLAYING_API_URL = import.meta.env.VITE_NOW_PLAYING_API_URL?.trim() || "/api/now-playing";
+const NOW_PLAYING_API_URL =
+  import.meta.env.VITE_NOW_PLAYING_API_URL?.trim() ||
+  "https://project-o0epg.vercel.app/api/now-playing";
 
 export default function NowPlaying() {
   const [song, setSong] = useState<any>(null);

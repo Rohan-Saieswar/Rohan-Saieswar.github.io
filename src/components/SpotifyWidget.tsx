@@ -20,7 +20,9 @@ interface TrackData {
   app?: string;
 }
 
-const NOW_PLAYING_API_URL = import.meta.env.VITE_NOW_PLAYING_API_URL?.trim();
+const NOW_PLAYING_API_URL =
+  import.meta.env.VITE_NOW_PLAYING_API_URL?.trim() ||
+  "https://project-o0epg.vercel.app/api/now-playing";
 
 function detectLastFmProvider(trackUrl?: string): TrackData["provider"] {
   if (!trackUrl) {
