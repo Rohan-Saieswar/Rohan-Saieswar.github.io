@@ -1,5 +1,5 @@
 import { useEffect, useState, useRef } from "react";
-import { FaSpotify, FaApple } from "react-icons/fa";
+import { FaSpotify, FaApple, FaMusic } from "react-icons/fa";
 import styles from "./NowPlaying.module.css";
 
 /* =========================
@@ -16,7 +16,63 @@ interface TrackData {
   album?: string;
   albumArt?: string;
   url?: string;
-  provider: "spotify" | "apple" | "lastfm";
+  provider: "spotify" | "apple" | "lastfm" | "music" | "unknown";
+  app?: string;
+}
+
+const NOW_PLAYING_API_URL = import.meta.env.VITE_NOW_PLAYING_API_URL?.trim();
+
+function detectLastFmProvider(trackUrl?: string): TrackData["provider"] {
+  if (!trackUrl) {
+    return "lastfm";
+  }
+
+  if (trackUrl.includes("spotify")) {
+    return "spotify";
+  }
+
+  if (trackUrl.includes("music.apple.com") || trackUrl.includes("itunes.apple.com") || trackUrl.includes("apple.com")) {
+    return "apple";
+  }
+
+  return "lastfm";
+}
+
+function normalizeProvider(value?: string): TrackData["provider"] {
+  switch (value?.trim().toLowerCase()) {
+    case "spotify":
+      return "spotify";
+    case "apple":
+    case "applemusic":
+    case "apple-music":
+    case "apple music":
+    case "itunes":
+      return "apple";
+    case "lastfm":
+    case "last.fm":
+      return "lastfm";
+    case "music":
+      return "music";
+    default:
+      return value ? "unknown" : "unknown";
+  }
+}
+
+function getProviderLabel(provider: TrackData["provider"], app?: string) {
+  if (typeof app === "string" && app.trim().length > 0) {
+    return app.trim();
+  }
+
+  switch (provider) {
+    case "apple":
+      return "Apple Music";
+    case "spotify":
+      return "Spotify";
+    case "lastfm":
+      return "Last.fm";
+    default:
+      return "Music";
+  }
 }
 
 export default function SpotifyWidget() {
@@ -31,8 +87,64 @@ export default function SpotifyWidget() {
   const LASTFM_USERNAME = "Rohan_Saieswar";
   const LASTFM_API_KEY = "c629c22b1469e49dcba4bccf66df6692";
 
+  function syncTrackIdentity(title?: string, artist?: string) {
+    const currentTrackId = `${title ?? ""}-${artist ?? ""}`;
+    if (currentTrackId !== lastTrackId.current) {
+      setArtLoaded(false);
+      lastTrackId.current = currentTrackId;
+    }
+  }
+
+  async function fetchFromNowPlayingApi() {
+    if (!NOW_PLAYING_API_URL) {
+      return null;
+    }
+
+    const res = await fetch(NOW_PLAYING_API_URL, {
+      headers: {
+        Accept: "application/json",
+      },
+    });
+
+    if (!res.ok) {
+      throw new Error(`Now playing API returned ${res.status}`);
+    }
+
+    const data = await res.json();
+    if (!data || typeof data !== "object") {
+      return null;
+    }
+
+    const title = typeof data.title === "string" ? data.title : undefined;
+    const artist = typeof data.artist === "string" ? data.artist : undefined;
+    const album = typeof data.album === "string" ? data.album : undefined;
+    const albumArt = typeof data.albumArt === "string" ? data.albumArt : undefined;
+    const url = typeof data.url === "string" ? data.url : undefined;
+    const app = typeof data.app === "string" ? data.app : undefined;
+
+    return {
+      isPlaying: Boolean(data.isPlaying),
+      title,
+      artist,
+      album,
+      albumArt,
+      url,
+      app,
+      provider: normalizeProvider(typeof data.provider === "string" ? data.provider : undefined),
+    } satisfies TrackData;
+  }
+
   async function getNowPlaying() {
     try {
+      if (NOW_PLAYING_API_URL) {
+        const apiTrack = await fetchFromNowPlayingApi();
+        if (apiTrack) {
+          syncTrackIdentity(apiTrack.title, apiTrack.artist);
+          setSong(apiTrack);
+          return;
+        }
+      }
+
       const url = `https://ws.audioscrobbler.com/2.0/?method=user.getrecenttracks&user=${LASTFM_USERNAME}&api_key=${LASTFM_API_KEY}&format=json&limit=1`;
       
       const res = await fetch(url);
@@ -44,13 +156,6 @@ export default function SpotifyWidget() {
         return;
       }
 
-      // Check if song changed to reset artwork loading state
-      const currentTrackId = `${track.name}-${track.artist?.["#text"]}`;
-      if (currentTrackId !== lastTrackId.current) {
-        setArtLoaded(false);
-        lastTrackId.current = currentTrackId;
-      }
-
       // Safety: If track has a date, it is definitely NOT playing (Last.fm ghost fix)
       const isPlaying = track["@attr"]?.nowplaying === "true" && !track.date;
       
@@ -58,7 +163,9 @@ export default function SpotifyWidget() {
       const artist = track.artist?.["#text"];
       const album = track.album?.["#text"];
       let albumArt = track.image?.[3]?.["#text"] || track.image?.[2]?.["#text"] || "";
-      let provider: "spotify" | "apple" | "lastfm" = "spotify";
+      const provider = detectLastFmProvider(track.url);
+
+      syncTrackIdentity(title, artist);
 
       // Last.fm's default grey star placeholder hash
       const isDefaultPlaceholder = albumArt.includes("2a96cbd8b46e442fc41c2b86b821562f");
@@ -70,29 +177,10 @@ export default function SpotifyWidget() {
           const itunesData = await itunesRes.json();
           if (itunesData.results && itunesData.results.length > 0) {
             albumArt = itunesData.results[0].artworkUrl100.replace("100x100bb", "600x600bb");
-            provider = "apple";
           }
         } catch (e) {
           console.error("iTunes fallback failed", e);
         }
-      }
-
-      // Refined provider detection
-      if (track.url?.includes("spotify")) {
-        provider = "spotify";
-      } else if (track.url?.includes("apple.com") || track.url?.includes("itunes")) {
-        provider = "apple";
-      } else if (albumArt.includes("mzstatic.com")) {
-        // mzstatic.com is Apple Music/iTunes CDN
-        provider = "apple";
-      }
-      
-      // Heuristic: If it's playing on Apple Music, the track URL often doesn't contain 'spotify'
-      // Most 3rd party scrobblers for Apple Music won't provide a Spotify URL.
-      if (provider === "spotify" && !track.url?.includes("spotify")) {
-        // If we have no proof it's Spotify, and it's playing, it might be Apple Music
-        // But Spotify is the default in the CSS tokens. 
-        // We'll trust the URL more.
       }
 
       setSong({
@@ -102,7 +190,7 @@ export default function SpotifyWidget() {
         album,
         albumArt,
         url: track.url,
-        provider
+        provider,
       });
 
     } catch (err) {
@@ -139,10 +227,13 @@ export default function SpotifyWidget() {
 
   const isPlaying = song?.isPlaying === true;
   const hasTrack = !!song?.title;
-  const provider = song?.provider || "spotify";
+  const provider = song?.provider || "unknown";
+  const providerLabel = getProviderLabel(provider, song?.app);
+  const ProviderIcon = provider === "apple" ? FaApple : provider === "spotify" ? FaSpotify : FaMusic;
+  const isAppleProvider = provider === "apple";
 
-  const cardClass = `${styles.npCard} ${provider === "apple" ? styles.npCardApple : styles.npCardSpotify}`;
-  const dotClass = `${styles.npDot} ${isPlaying ? styles.npDotLive : ""} ${provider === "apple" ? styles.npDotApple : styles.npDotSpotify}`;
+  const cardClass = `${styles.npCard} ${isAppleProvider ? styles.npCardApple : styles.npCardSpotify}`;
+  const dotClass = `${styles.npDot} ${isPlaying ? styles.npDotLive : ""} ${isAppleProvider ? styles.npDotApple : styles.npDotSpotify}`;
 
   return (
     <div style={{ position: "fixed", bottom: "32px", right: "32px", zIndex: 9999 }}>
@@ -160,13 +251,9 @@ export default function SpotifyWidget() {
         <div className={styles.npInner}>
           <div className={styles.npHeader}>
             <div className={styles.npProvider}>
-              {provider === "apple" ? (
-                <FaApple className={styles.npProviderSvg} />
-              ) : (
-                <FaSpotify className={styles.npProviderSvg} />
-              )}
+              <ProviderIcon className={styles.npProviderSvg} />
               <span className={styles.npProviderLabel}>
-                {provider === "apple" ? "Apple Music" : "Spotify"}
+                {providerLabel}
               </span>
             </div>
             
@@ -200,7 +287,7 @@ export default function SpotifyWidget() {
                 </>
               ) : (
                 <div className={styles.npArtEmpty}>
-                  {provider === "apple" ? <FaApple className={styles.npProviderSvg} /> : <FaSpotify className={styles.npProviderSvg} />}
+                  <ProviderIcon className={styles.npProviderSvg} />
                 </div>
               )}
             </div>

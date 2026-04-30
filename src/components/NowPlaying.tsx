@@ -1,11 +1,13 @@
 import { useEffect, useState } from "react";
 
+const NOW_PLAYING_API_URL = import.meta.env.VITE_NOW_PLAYING_API_URL?.trim() || "/api/now-playing";
+
 export default function NowPlaying() {
   const [song, setSong] = useState<any>(null);
 
   async function getNowPlaying() {
     try {
-      const res = await fetch("https://project-o0epg.vercel.app/api/now-playing");
+      const res = await fetch(NOW_PLAYING_API_URL);
       const data = await res.json();
       setSong(data);
     } catch (err) {
