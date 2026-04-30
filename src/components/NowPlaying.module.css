@@ -1,0 +1,327 @@
+/* ═══════════════════════════════════════════════════════════════
+   NowPlaying.module.css  —  Apple Music × Spotify widget
+   ═══════════════════════════════════════════════════════════════ */
+
+.npCard {
+  --np-radius:       18px;
+  --np-padding:      14px 16px 16px;
+  --np-art-size:     68px;
+  --np-art-radius:   11px;
+
+  --np-bg:           rgba(14, 14, 22, 0.88);
+  --np-border:       rgba(255, 255, 255, 0.08);
+  --np-shadow:       0 20px 60px rgba(0, 0, 0, 0.55),
+                     0 1px 0 rgba(255, 255, 255, 0.07) inset;
+
+  --np-text-primary: #ffffff;
+  --np-text-sec:     rgba(255, 255, 255, 0.6);
+  --np-text-ter:     rgba(255, 255, 255, 0.28);
+
+  /* Per-provider accent (overridden below) */
+  --np-accent:       rgba(255, 255, 255, 0.4);
+}
+
+/* Provider colour overrides */
+.npCardApple   { --np-accent: #fc3c44; }
+.npCardSpotify { --np-accent: #1db954; }
+
+/* ── Card shell ────────────────────────────────────────────────── */
+.npCard {
+  position: relative;
+  width: 320px;
+  border-radius: var(--np-radius);
+  overflow: hidden;
+  background: var(--np-bg);
+  border: 1px solid var(--np-border);
+  box-shadow: var(--np-shadow);
+  backdrop-filter: blur(28px);
+  -webkit-backdrop-filter: blur(28px);
+  transition: transform 0.32s cubic-bezier(0.34, 1.56, 0.64, 1),
+              box-shadow 0.32s ease;
+  cursor: default;
+  font-family: -apple-system, "SF Pro Display", "Helvetica Neue", sans-serif;
+  text-decoration: none;
+  display: block;
+  color: inherit;
+}
+
+.npCard:hover {
+  transform: translateY(-3px) scale(1.01);
+  box-shadow: 0 30px 80px rgba(0, 0, 0, 0.65),
+              0 1px 0 rgba(255, 255, 255, 0.1) inset;
+}
+
+/* ── Hidden canvas (colour extraction) ─────────────────────────── */
+.npCanvas {
+  display: none;
+  position: absolute;
+  pointer-events: none;
+}
+
+/* ── Colour wash ────────────────────────────────────────────────── */
+.npWash {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  transition: background 1.6s ease;
+}
+
+/* ── Shimmer border ─────────────────────────────────────────────── */
+.npBorderShimmer {
+  position: absolute;
+  inset: 0;
+  border-radius: var(--np-radius);
+  pointer-events: none;
+  z-index: 0;
+  background: linear-gradient(
+    135deg,
+    rgba(255, 255, 255, 0.06) 0%,
+    transparent 50%,
+    rgba(255, 255, 255, 0.03) 100%
+  );
+}
+
+/* ── Inner content ──────────────────────────────────────────────── */
+.npInner {
+  position: relative;
+  z-index: 1;
+  padding: var(--np-padding);
+}
+
+/* ── Header row ─────────────────────────────────────────────────── */
+.npHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 13px;
+}
+
+/* Provider badge */
+.npProvider {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--np-accent);
+}
+
+.npProviderSvg {
+  width: 18px;
+  height: 18px;
+  flex-shrink: 0;
+}
+
+.npProviderLabel {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--np-accent);
+}
+
+/* Status */
+.npStatus {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.npDot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--np-accent);
+  opacity: 0;
+  transition: opacity 0.4s ease;
+  flex-shrink: 0;
+}
+
+.npDotLive {
+  opacity: 1;
+}
+
+.npDotApple.npDotLive {
+  animation: np-pulse-apple 1.8s ease-in-out infinite;
+}
+
+.npDotSpotify.npDotLive {
+  animation: np-pulse-spotify 1.8s ease-in-out infinite;
+}
+
+@keyframes np-pulse-apple {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(252, 60, 68, 0.7); }
+  50%       { box-shadow: 0 0 0 5px rgba(252, 60, 68, 0);  }
+}
+
+@keyframes np-pulse-spotify {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(29, 185, 84, 0.7); }
+  50%       { box-shadow: 0 0 0 5px rgba(29, 185, 84, 0);  }
+}
+
+.npStatusLabel {
+  font-size: 10px;
+  font-weight: 500;
+  letter-spacing: 0.04em;
+  color: var(--np-text-ter);
+  white-space: nowrap;
+}
+
+/* ── Track row ──────────────────────────────────────────────────── */
+.npTrackRow {
+  display: flex;
+  align-items: center;
+  gap: 13px;
+}
+
+/* Album art container */
+.npArtWrap {
+  position: relative;
+  width: var(--np-art-size);
+  height: var(--np-art-size);
+  border-radius: var(--np-art-radius);
+  flex-shrink: 0;
+  overflow: hidden;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.55);
+  background: linear-gradient(135deg, #1e1e2e, #0d0d18);
+}
+
+.npArt {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: var(--np-art-radius);
+  display: block;
+  opacity: 0;
+  transition: opacity 0.5s ease;
+}
+
+.npArtLoaded {
+  opacity: 1;
+}
+
+.npArtSkeleton {
+  position: absolute;
+  inset: 0;
+  border-radius: var(--np-art-radius);
+  background: linear-gradient(
+    90deg,
+    rgba(255, 255, 255, 0.04) 25%,
+    rgba(255, 255, 255, 0.09) 50%,
+    rgba(255, 255, 255, 0.04) 75%
+  );
+  background-size: 200% 100%;
+  animation: np-shimmer 1.6s infinite;
+}
+
+.npArtEmpty {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0.15;
+}
+
+.npArtEmpty .npProviderSvg {
+  width: 28px;
+  height: 28px;
+  color: #fff;
+}
+
+/* ── Equaliser bars ─────────────────────────────────────────────── */
+.npBars {
+  position: absolute;
+  bottom: 5px;
+  right: 5px;
+  display: flex;
+  align-items: flex-end;
+  gap: 2px;
+  height: 18px;
+  padding: 2px 4px;
+  background: rgba(0, 0, 0, 0.5);
+  border-radius: 5px;
+  backdrop-filter: blur(4px);
+}
+
+.npBar {
+  width: 3px;
+  height: 4px;
+  border-radius: 2px;
+  background: rgba(255, 255, 255, 0.85);
+  transform-origin: bottom;
+  transition: height 0.3s ease;
+}
+
+/* Animate bars when playing */
+.npBarsActive .npBar1 { animation: np-bar1 0.75s ease-in-out infinite;      }
+.npBarsActive .npBar2 { animation: np-bar2 0.9s  ease-in-out infinite 0.1s; }
+.npBarsActive .npBar3 { animation: np-bar3 0.65s ease-in-out infinite 0.05s;}
+.npBarsActive .npBar4 { animation: np-bar4 0.8s  ease-in-out infinite 0.15s;}
+
+@keyframes np-bar1 { 0%,100%{height:3px}  50%{height:13px} }
+@keyframes np-bar2 { 0%,100%{height:9px}  50%{height:4px}  }
+@keyframes np-bar3 { 0%,100%{height:13px} 50%{height:3px}  }
+@keyframes np-bar4 { 0%,100%{height:5px}  50%{height:11px} }
+
+/* ── Text info ──────────────────────────────────────────────────── */
+.npInfo {
+  flex: 1;
+  min-width: 0;
+}
+
+.npTitle,
+.npArtist,
+.npAlbum {
+  margin: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.npTitle {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--np-text-primary);
+  margin-bottom: 3px;
+  letter-spacing: -0.01em;
+}
+
+.npArtist {
+  font-size: 12px;
+  color: var(--np-text-sec);
+  margin-bottom: 2px;
+}
+
+.npAlbum {
+  font-size: 11px;
+  color: var(--np-text-ter);
+}
+
+/* ── Loading skeletons ──────────────────────────────────────────── */
+.npSkeleton {
+  border-radius: 5px;
+  background: linear-gradient(
+    90deg,
+    rgba(255, 255, 255, 0.05) 25%,
+    rgba(255, 255, 255, 0.1)  50%,
+    rgba(255, 255, 255, 0.05) 75%
+  );
+  background-size: 200% 100%;
+  animation: np-shimmer 1.6s infinite;
+  margin-bottom: 4px;
+}
+
+.npSkeletonTitle  { height: 14px; width: 80%; }
+.npSkeletonArtist { height: 12px; width: 60%; }
+.npSkeletonAlbum  { height: 10px; width: 45%; }
+
+@keyframes np-shimmer {
+  0%   { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
+/* ── Responsive (narrow) ────────────────────────────────────────── */
+@media (max-width: 360px) {
+  .npCard        { width: 100%; }
+  .npProviderLabel { display: none; }
+}
