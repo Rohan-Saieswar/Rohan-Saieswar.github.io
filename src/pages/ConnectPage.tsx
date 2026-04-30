@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, type ReactElement } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Gamepad2, Mail, Github, Linkedin, Twitter, MessageSquare } from 'lucide-react';
 import ClickSpark from '../components/ClickSpark';
@@ -10,7 +10,7 @@ import MagneticField from '../components/MagneticField';
 
 type Tab = 'playground' | 'contact';
 
-const TABS: { id: Tab; label: string; icon: JSX.Element }[] = [
+const TABS: { id: Tab; label: string; icon: ReactElement }[] = [
   { id: 'playground', label: 'Playground', icon: <Gamepad2 size={18} /> },
   { id: 'contact',    label: 'Contact',    icon: <MessageSquare size={18} /> },
 ];

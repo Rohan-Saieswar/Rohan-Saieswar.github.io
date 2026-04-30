@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, type ReactElement } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { GraduationCap, BookOpen, Award, Github, Star, GitFork, ExternalLink, Code, Database, Layout, X } from 'lucide-react';
 import { useMotionValue, useTransform } from 'framer-motion';
@@ -214,7 +214,7 @@ const ProjectsTab = () => {
 };
 
 // ─── Main Portfolio Page ───────────────────────────────────────────────────────
-const TABS: { id: Tab; label: string; icon: JSX.Element }[] = [
+const TABS: { id: Tab; label: string; icon: ReactElement }[] = [
   { id: 'education',    label: 'Education',    icon: <GraduationCap size={18} /> },
   { id: 'projects',     label: 'Projects',     icon: <Github size={18} /> },
   { id: 'certificates', label: 'Certificates', icon: <Award size={18} /> },
