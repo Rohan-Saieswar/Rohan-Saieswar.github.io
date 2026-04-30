@@ -51,7 +51,7 @@ const Header = () => {
   return (
     <>
       <header className={`${styles.header} ${isScrolled ? styles.scrolled : ''}`}>
-        <div className={`container ${styles.navContainer}`}>
+        <div className={styles.navContainer}>
           <a href="#" className={styles.logo} onClick={() => setIsMobileMenuOpen(false)}>
             <img src="/favicon.png" alt="Logo" className={styles.logoIcon} />
             <ShinyText text="KRS." speed={2.5} shineColor="#3b82f6" />
