@@ -1,153 +1,131 @@
 import { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Menu, X, Github, Linkedin, Mail } from 'lucide-react';
+import { Github, Linkedin, Mail } from 'lucide-react';
 import ShinyText from './ShinyText';
 import styles from './Header.module.css';
 
+const navItems = [
+  { name: 'Home',       path: '/',           num: '01' },
+  { name: 'Experience', path: '/experience', num: '02' },
+  { name: 'Portfolio',  path: '/portfolio',  num: '03' },
+  { name: 'Connect',    path: '/connect',    num: '04' },
+];
+
 const Header = () => {
   const [isScrolled, setIsScrolled] = useState(false);
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [menuOpen, setMenuOpen]     = useState(false);
   const location = useLocation();
 
-  const isHome = location.pathname === '/';
-
   useEffect(() => {
-    const handleScroll = () => {
-      setIsScrolled(window.scrollY > 10);
-    };
-    window.addEventListener('scroll', handleScroll);
-    return () => window.removeEventListener('scroll', handleScroll);
+    const onScroll = () => setIsScrolled(window.scrollY > 20);
+    window.addEventListener('scroll', onScroll);
+    return () => window.removeEventListener('scroll', onScroll);
   }, []);
 
-  interface NavItem {
-    name: string;
-    path: string;
-    isHash?: boolean;
-  }
+  // close menu on route change
+  useEffect(() => { setMenuOpen(false); }, [location.pathname]);
 
-  const navItems: NavItem[] = [
-    { name: 'Home', path: '/' },
-    { name: 'Experience', path: '/experience' },
-    { name: 'Education', path: '/education' },
-    { name: 'Projects', path: '/projects' },
-    { name: 'Certificates', path: '/certificates' },
-    { name: 'Fun', path: '/fun' },
-    { name: 'Contact', path: '/contact' }
-  ];
-
-  // Toggle body scroll when mobile menu is open
+  // lock body scroll when menu open
   useEffect(() => {
-    if (isMobileMenuOpen) {
-      document.body.style.overflow = 'hidden';
-    } else {
-      document.body.style.overflow = 'unset';
-    }
-    return () => {
-      document.body.style.overflow = 'unset';
-    };
-  }, [isMobileMenuOpen]);
+    document.body.style.overflow = menuOpen ? 'hidden' : '';
+    return () => { document.body.style.overflow = ''; };
+  }, [menuOpen]);
+
+  const isActive = (path: string) => location.pathname === path;
 
   return (
     <>
       <header className={`${styles.header} ${isScrolled ? styles.scrolled : ''}`}>
         <div className={styles.navContainer}>
-          <a href="#" className={styles.logo} onClick={() => setIsMobileMenuOpen(false)}>
+
+          {/* Logo */}
+          <Link to="/" className={styles.logo} aria-label="Home">
             <img src="/favicon.png" alt="Logo" className={styles.logoIcon} />
             <ShinyText text="KRS." speed={2.5} shineColor="#3b82f6" />
-          </a>
+          </Link>
 
-          <nav className={styles.navLinks}>
+          {/* Desktop nav links — always visible */}
+          <nav className={styles.desktopNav}>
             {navItems.map((item) => (
-              item.isHash && !isHome ? (
-                <a key={item.name} href={item.path} className={styles.navLink}>
-                  <ShinyText text={item.name} speed={3} pauseOnHover={true} />
-                </a>
-              ) : (
-                <Link key={item.name} to={item.path} className={styles.navLink}>
-                  <ShinyText text={item.name} speed={3} pauseOnHover={true} />
-                </Link>
-              )
+              <Link
+                key={item.path}
+                to={item.path}
+                className={`${styles.navLink} ${isActive(item.path) ? styles.navLinkActive : ''}`}
+              >
+                {item.name}
+              </Link>
             ))}
           </nav>
 
-          <div className={styles.socials}>
-            <a href="https://github.com/Rohan-Saieswar" target="_blank" rel="noreferrer" className={styles.socialIcon}>
-              <Github size={20} />
-            </a>
-            <a href="https://linkedin.com/in/" target="_blank" rel="noreferrer" className={styles.socialIcon}>
-              <Linkedin size={20} />
-            </a>
-            <a href="mailto:rohansaieswar@gmail.com" className={styles.socialLink} aria-label="Email">
-              <Mail size={20} />
-            </a>
-          </div>
-
-          <button 
-            className={styles.mobileMenuBtn} 
-            onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+          {/* Hamburger — mobile only */}
+          <button
+            className={`${styles.hamburger} ${menuOpen ? styles.hamburgerOpen : ''}`}
+            onClick={() => setMenuOpen((v) => !v)}
             aria-label="Toggle menu"
+            aria-expanded={menuOpen}
           >
-            {isMobileMenuOpen ? <X size={28} /> : <Menu size={28} />}
+            <span className={styles.bar} />
+            <span className={styles.bar} />
           </button>
         </div>
       </header>
 
+      {/* Mobile Full-Screen Overlay */}
       <AnimatePresence>
-        {isMobileMenuOpen && (
-          <motion.div 
+        {menuOpen && (
+          <motion.div
+            className={styles.overlay}
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className={styles.mobileMenu}
+            transition={{ duration: 0.3 }}
           >
-            {navItems.map((item, i) => (
-              item.isHash && !isHome ? (
-                 <motion.a 
-                  key={item.name}
-                  href={item.path}
-                  className={styles.mobileLink}
-                  onClick={() => setIsMobileMenuOpen(false)}
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: i * 0.1 }}
-                >
-                  <ShinyText text={item.name} speed={3} />
-                </motion.a>
-              ) : (
+            {/* Close button */}
+            <button
+              className={styles.closeBtn}
+              onClick={() => setMenuOpen(false)}
+              aria-label="Close menu"
+            >
+              <span className={styles.closeLine} />
+              <span className={styles.closeLine} />
+            </button>
+
+            {/* Nav Links */}
+            <nav className={styles.overlayNav}>
+              {navItems.map((item, i) => (
                 <motion.div
-                  key={item.name}
-                  initial={{ opacity: 0, y: 20 }}
+                  key={item.path}
+                  className={styles.overlayItemWrapper}
+                  initial={{ opacity: 0, y: 28 }}
                   animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: i * 0.1 }}
+                  exit={{ opacity: 0, y: 16 }}
+                  transition={{ delay: i * 0.07, duration: 0.4 }}
                 >
-                  <Link 
+                  {i === 0 && <div className={styles.separator} />}
+                  <Link
                     to={item.path}
-                    className={styles.mobileLink}
-                    onClick={() => setIsMobileMenuOpen(false)}
+                    className={`${styles.overlayLink} ${isActive(item.path) ? styles.overlayLinkActive : ''}`}
+                    onClick={() => setMenuOpen(false)}
                   >
-                    <ShinyText text={item.name} speed={3} />
+                    <span className={styles.overlayLinkName}>{item.name}</span>
+                    <span className={styles.overlayLinkNum}>{item.num}</span>
                   </Link>
+                  <div className={styles.separator} />
                 </motion.div>
-              )
-            ))}
-            
-            <motion.div 
-              className="mt-8 flex gap-6"
+              ))}
+            </nav>
+
+            {/* Socials */}
+            <motion.div
+              className={styles.overlaySocials}
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
-              transition={{ delay: 0.4 }}
-              style={{ display: 'flex', gap: '1.5rem', marginTop: '2rem' }}
+              transition={{ delay: 0.38 }}
             >
-              <a href="https://github.com/Rohan-Saieswar" target="_blank" rel="noreferrer" className={styles.socialIcon}>
-                <Github size={24} />
-              </a>
-              <a href="https://linkedin.com/in/" target="_blank" rel="noreferrer" className={styles.socialIcon}>
-                <Linkedin size={24} />
-              </a>
-              <a href="mailto:rohansaieswar@gmail.com" className={styles.socialLink} aria-label="Email">
-                <Mail size={24} />
-              </a>
+              <a href="https://github.com/Rohan-Saieswar" target="_blank" rel="noreferrer" className={styles.socialIcon} aria-label="GitHub"><Github size={22} /></a>
+              <a href="https://linkedin.com/in/"           target="_blank" rel="noreferrer" className={styles.socialIcon} aria-label="LinkedIn"><Linkedin size={22} /></a>
+              <a href="mailto:rohansaieswar@gmail.com"                                      className={styles.socialIcon} aria-label="Email"><Mail size={22} /></a>
             </motion.div>
           </motion.div>
         )}

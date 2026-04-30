@@ -1,15 +1,12 @@
-import { Routes, Route } from 'react-router-dom';
+import { Routes, Route, Navigate } from 'react-router-dom';
 import MagneticCursor from './components/MagneticCursor';
 import SpotifyWidget from './components/SpotifyWidget';
 import DynamicIsland from './components/DynamicIsland';
 import Header from './components/Header';
 import Home from './pages/Home';
-import Fun from './pages/Fun';
-import Certificates from './pages/Certificates';
 import Experience from './pages/Experience';
-import Education from './pages/Education';
-import Contact from './pages/Contact';
-import ProjectsPage from './pages/ProjectsPage';
+import PortfolioPage from './pages/PortfolioPage';
+import ConnectPage from './pages/ConnectPage';
 import './App.css';
 
 function App() {
@@ -20,13 +17,16 @@ function App() {
       <DynamicIsland />
       <SpotifyWidget />
       <Routes>
-        <Route path="/" element={<Home />} />
-        <Route path="/fun" element={<Fun />} />
-        <Route path="/certificates" element={<Certificates />} />
+        <Route path="/"           element={<Home />} />
         <Route path="/experience" element={<Experience />} />
-        <Route path="/education" element={<Education />} />
-        <Route path="/contact" element={<Contact />} />
-        <Route path="/projects" element={<ProjectsPage />} />
+        <Route path="/portfolio"  element={<PortfolioPage />} />
+        <Route path="/connect"    element={<ConnectPage />} />
+        {/* Redirect old routes */}
+        <Route path="/education"    element={<Navigate to="/portfolio" replace />} />
+        <Route path="/projects"     element={<Navigate to="/portfolio" replace />} />
+        <Route path="/certificates" element={<Navigate to="/portfolio" replace />} />
+        <Route path="/fun"          element={<Navigate to="/connect"   replace />} />
+        <Route path="/contact"      element={<Navigate to="/connect"   replace />} />
       </Routes>
     </>
   );
