@@ -159,7 +159,6 @@ export default function SpotifyWidget() {
   const isPlaying = song?.isPlaying === true;
   const hasTrack = !!song?.title;
   const provider = song?.provider || "unknown";
-  const appName = song?.app || (provider === "apple" ? "Apple Music" : provider === "spotify" ? "Spotify" : "Music");
   const ProviderIcon = provider === "apple" ? FaApple : provider === "spotify" ? FaSpotify : FaMusic;
 
   const cardClass = `${styles.npCard} ${provider === "apple" ? styles.npCardApple : styles.npCardSpotify}`;
