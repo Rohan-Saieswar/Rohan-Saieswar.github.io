@@ -21,7 +21,7 @@ interface NowPlayingRecord {
 }
 
 interface IncomingNowPlayingPayload {
-  isPlaying?: boolean;
+  isPlaying?: boolean | string;
   title?: string;
   artist?: string;
   album?: string;
@@ -30,10 +30,11 @@ interface IncomingNowPlayingPayload {
   provider?: string;
   app?: string;
   source?: string;
-  progressMs?: number;
-  durationMs?: number;
+  progressMs?: number | string;
+  durationMs?: number | string;
   capturedAt?: string;
-  ttlSeconds?: number;
+  ttlSeconds?: number | string;
+  token?: string;
 }
 
 const NOW_PLAYING_KEY = "music:now-playing";
@@ -92,12 +93,47 @@ function sanitizeOptionalNumber(value: unknown) {
   return typeof value === "number" && Number.isFinite(value) ? value : undefined;
 }
 
+function parseOptionalBoolean(value: unknown) {
+  if (typeof value === "boolean") {
+    return value;
+  }
+
+  if (typeof value === "string") {
+    const normalized = value.trim().toLowerCase();
+    if (["1", "true", "yes", "on", "playing"].includes(normalized)) {
+      return true;
+    }
+
+    if (["0", "false", "no", "off", "stopped", "paused"].includes(normalized)) {
+      return false;
+    }
+  }
+
+  return undefined;
+}
+
+function parseOptionalNumberish(value: unknown) {
+  if (typeof value === "number" && Number.isFinite(value)) {
+    return value;
+  }
+
+  if (typeof value === "string" && value.trim().length > 0) {
+    const parsed = Number(value);
+    if (Number.isFinite(parsed)) {
+      return parsed;
+    }
+  }
+
+  return undefined;
+}
+
 function clampTtl(value: unknown) {
-  if (typeof value !== "number" || !Number.isFinite(value)) {
+  const parsedValue = parseOptionalNumberish(value);
+  if (typeof parsedValue !== "number") {
     return DEFAULT_TTL_SECONDS;
   }
 
-  return Math.max(1, Math.min(MAX_TTL_SECONDS, Math.floor(value)));
+  return Math.max(1, Math.min(MAX_TTL_SECONDS, Math.floor(parsedValue)));
 }
 
 function serializeRedisCommand(command: Array<string | number>) {
@@ -357,7 +393,7 @@ async function writeNowPlayingRecord(record: NowPlayingRecord, ttlSeconds: numbe
   await runRedisRestCommand(["SET", NOW_PLAYING_KEY, JSON.stringify(record), "EX", ttlSeconds]);
 }
 
-function isAuthorized(request: Request) {
+function isAuthorized(request: Request, payload?: IncomingNowPlayingPayload) {
   const expectedToken = process.env.NOW_PLAYING_WRITE_TOKEN;
   if (!expectedToken) {
     return false;
@@ -365,12 +401,20 @@ function isAuthorized(request: Request) {
 
   const bearerToken = request.headers.get("authorization")?.replace(/^Bearer\s+/i, "").trim();
   const headerToken = request.headers.get("x-now-playing-token")?.trim();
-  return bearerToken === expectedToken || headerToken === expectedToken;
+  const queryToken = new URL(request.url).searchParams.get("token")?.trim();
+  const bodyToken = sanitizeOptionalString(payload?.token);
+
+  return (
+    bearerToken === expectedToken ||
+    headerToken === expectedToken ||
+    queryToken === expectedToken ||
+    bodyToken === expectedToken
+  );
 }
 
 function buildRecord(payload: IncomingNowPlayingPayload): NowPlayingRecord {
   return {
-    isPlaying: Boolean(payload.isPlaying),
+    isPlaying: parseOptionalBoolean(payload.isPlaying) ?? false,
     title: sanitizeOptionalString(payload.title),
     artist: sanitizeOptionalString(payload.artist),
     album: sanitizeOptionalString(payload.album),
@@ -379,10 +423,63 @@ function buildRecord(payload: IncomingNowPlayingPayload): NowPlayingRecord {
     provider: normalizeProvider(payload.provider),
     app: sanitizeOptionalString(payload.app),
     source: sanitizeOptionalString(payload.source),
-    progressMs: sanitizeOptionalNumber(payload.progressMs),
-    durationMs: sanitizeOptionalNumber(payload.durationMs),
+    progressMs: sanitizeOptionalNumber(parseOptionalNumberish(payload.progressMs)),
+    durationMs: sanitizeOptionalNumber(parseOptionalNumberish(payload.durationMs)),
     capturedAt: sanitizeOptionalString(payload.capturedAt) || new Date().toISOString(),
   };
+}
+
+function payloadFromSearchParams(searchParams: URLSearchParams): IncomingNowPlayingPayload {
+  return {
+    isPlaying: searchParams.get("isPlaying") ?? undefined,
+    title: searchParams.get("title") ?? undefined,
+    artist: searchParams.get("artist") ?? undefined,
+    album: searchParams.get("album") ?? undefined,
+    albumArt: searchParams.get("albumArt") ?? undefined,
+    url: searchParams.get("url") ?? undefined,
+    provider: searchParams.get("provider") ?? undefined,
+    app: searchParams.get("app") ?? undefined,
+    source: searchParams.get("source") ?? undefined,
+    progressMs: searchParams.get("progressMs") ?? undefined,
+    durationMs: searchParams.get("durationMs") ?? undefined,
+    capturedAt: searchParams.get("capturedAt") ?? undefined,
+    ttlSeconds: searchParams.get("ttlSeconds") ?? undefined,
+    token: searchParams.get("token") ?? undefined,
+  };
+}
+
+async function parseRequestPayload(request: Request): Promise<IncomingNowPlayingPayload> {
+  const url = new URL(request.url);
+  const queryPayload = payloadFromSearchParams(url.searchParams);
+  const contentType = request.headers.get("content-type")?.toLowerCase() ?? "";
+
+  if (contentType.includes("application/json")) {
+    const body = (await request.json()) as IncomingNowPlayingPayload;
+    return { ...queryPayload, ...body };
+  }
+
+  if (contentType.includes("application/x-www-form-urlencoded")) {
+    const formData = await request.formData();
+    return {
+      ...queryPayload,
+      isPlaying: formData.get("isPlaying")?.toString(),
+      title: formData.get("title")?.toString(),
+      artist: formData.get("artist")?.toString(),
+      album: formData.get("album")?.toString(),
+      albumArt: formData.get("albumArt")?.toString(),
+      url: formData.get("url")?.toString(),
+      provider: formData.get("provider")?.toString(),
+      app: formData.get("app")?.toString(),
+      source: formData.get("source")?.toString(),
+      progressMs: formData.get("progressMs")?.toString(),
+      durationMs: formData.get("durationMs")?.toString(),
+      capturedAt: formData.get("capturedAt")?.toString(),
+      ttlSeconds: formData.get("ttlSeconds")?.toString(),
+      token: formData.get("token")?.toString(),
+    };
+  }
+
+  return queryPayload;
 }
 
 export function OPTIONS() {
@@ -411,12 +508,23 @@ export async function GET() {
 }
 
 export async function POST(request: Request) {
-  if (!isAuthorized(request)) {
+  let payload: IncomingNowPlayingPayload;
+
+  try {
+    payload = await parseRequestPayload(request);
+  } catch (error) {
+    console.error("Failed to parse now playing request", error);
+    return jsonResponse(
+      { error: "Invalid request payload." },
+      { status: 400 },
+    );
+  }
+
+  if (!isAuthorized(request, payload)) {
     return jsonResponse({ error: "Unauthorized" }, { status: 401 });
   }
 
   try {
-    const payload = (await request.json()) as IncomingNowPlayingPayload;
     const record = buildRecord(payload);
     const ttlSeconds = clampTtl(payload.ttlSeconds);
 

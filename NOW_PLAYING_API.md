@@ -7,6 +7,7 @@ This project can read live music state from a Vercel Function instead of guessin
 - `GET /api/now-playing` returns the latest stored track
 - `POST /api/now-playing` updates the latest stored track
 - the frontend reads `VITE_NOW_PLAYING_API_URL` first, then falls back to Last.fm only if that API is not configured
+- `POST` accepts JSON, form-encoded data, or URL query parameters for easier Android automation
 
 ## Required server env vars
 
@@ -69,6 +70,14 @@ curl -X POST "https://your-vercel-project.vercel.app/api/now-playing" \
   }'
 ```
 
+## URL-only example
+
+Useful for MacroDroid, Automate or other simple mobile automation apps:
+
+```text
+https://your-vercel-project.vercel.app/api/now-playing?token=YOUR_TOKEN&isPlaying=true&provider=spotify&app=Spotify&title=Song%20Name&artist=Artist%20Name&source=android-bridge
+```
+
 ## Notes
 
 - send updates every 15 to 30 seconds while music is playing
@@ -80,3 +89,4 @@ curl -X POST "https://your-vercel-project.vercel.app/api/now-playing" \
 - Vercel Functions: https://vercel.com/docs/functions
 - Vercel Storage overview: https://vercel.com/docs/storage
 - Upstash REST API: https://upstash.com/docs/redis/features/restapi
+- Android bridge guide in this repo: `ANDROID_BRIDGE.md`
